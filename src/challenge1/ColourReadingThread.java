@@ -13,7 +13,7 @@ public class ColourReadingThread extends Thread {
 //	static String colourString = COLOUR_UNKNOWN;
 
 	// Initializing color sensor
-	static Port s1 = TheProgram.brick.getPort("S1");
+	static Port s1 = TheSmallProgram.brick.getPort("S1");
 	static EV3ColorSensor colorSensor = new EV3ColorSensor(s1);
 
 	public ColourReadingThread() {
@@ -26,7 +26,7 @@ public class ColourReadingThread extends Thread {
 	// METHOD////////////////////////////////////////////////////////////////////////
 	@Override
 	public void run() {
-		while (TheProgram.done == false) {
+		while (TheSmallProgram.done == false) {
 			colourValue = getColorValue();
 			mean = (mean * sampleNumber + colourValue) / (sampleNumber + 1);
 			sampleNumber++;
@@ -64,17 +64,7 @@ public class ColourReadingThread extends Thread {
 	 * The following code turns original colour values into the respective colour
 	 * strings (Black, White, Gray, etc.)
 	 */
-	public static String getColourString(float colourValue) {
-		if (colourValue <= -0.1) {
-			return COLOUR_UNKNOWN;
-		} else if (colourValue <= TheProgram.OFFSET) {
-			return COLOUR_BLACK;
-		} else {
-			return COLOUR_WHITE;
-		}
-	}
-
-	public static String getColourString() {
-		return getColourString(colourValue);
+	public static float getColourString(float colourValue) {
+		return colourValue;
 	}
 }
