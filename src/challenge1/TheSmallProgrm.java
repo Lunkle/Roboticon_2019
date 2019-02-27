@@ -20,10 +20,7 @@ import lejos.utility.Delay;
 public class TheSmallProgrm {
 	static boolean done = false;
 
-	public static float TpStart = 90;// starting power
-	public static float Tp = TpStart;// dont change
-	public static float TpAcc = 1f; // rate of acceleration to TpMax
-	public static float TpMax = 250; // max speed
+	public static float Tp = 320;
 
 	static Brick brick;
 
@@ -37,7 +34,7 @@ public class TheSmallProgrm {
 	static float rightMotorSpeed = Tp;
 
 	static float xPos = 0; // This is the x position of the robot in inches.
-	static final float ONE_INCH = 100;
+	static final float ONE_INCH = 160;
 
 	// MAIN/////////////////////////////////////////////////////////////////////////////
 	public static void main(String[] args) {
@@ -45,12 +42,16 @@ public class TheSmallProgrm {
 		System.out.println("Press a button to start.");
 		Button.ENTER.waitForPress();
 		startLineFollowingThreads();
+//		moveForward(12);
+		turnRight(180);
+//		moveForward(12);
 //		moveToEnd();
 //		waitFiveSeconds();
 //		returnToStart();
 		done = true;
+		Delay.msDelay(5000);
 		end();
-		Delay.msDelay(1000);
+		Delay.msDelay(5000);
 	}
 
 	private static void moveToEnd() {
@@ -111,14 +112,14 @@ public class TheSmallProgrm {
 		rightMotor.setSpeed(0);
 	}
 
-	private static void turnRight() {
+	private static void turnRight(float angle) {
 		float currentAngle = GyroReadingThread.angleValue;
 		leftMotor.backward();
 		rightMotor.forward();
 		// due to sensor/data delay, take the degree of turn you want and -4
-
-		while (GyroReadingThread.angleValue >= currentAngle - 176) {
-			if (GyroReadingThread.angleValue < currentAngle - 177) {
+		float targetAngle = (currentAngle - (angle - 0.057f * Tp - 0.75f));
+		while (GyroReadingThread.angleValue >= targetAngle) {
+			if (GyroReadingThread.angleValue < targetAngle) {
 				stopMotors();
 				break;
 			}
