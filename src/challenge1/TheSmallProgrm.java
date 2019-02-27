@@ -36,25 +36,36 @@ public class TheSmallProgrm {
 	static float leftMotorSpeed = Tp;
 	static float rightMotorSpeed = Tp;
 
+	static float xPos = 0; // This is the x position of the robot in inches.
+	static final float ONE_INCH = 100;
+
 	// MAIN/////////////////////////////////////////////////////////////////////////////
 	public static void main(String[] args) {
 		init();
 		System.out.println("Press a button to start.");
 		Button.ENTER.waitForPress();
 		startLineFollowingThreads();
-//		while (!done) {
-//			turnRight();
-//		}
-
-		moveToEnd();
-		waitFiveSeconds();
-		returnToStart();
+//		moveToEnd();
+//		waitFiveSeconds();
+//		returnToStart();
+		done = true;
 		end();
 		Delay.msDelay(1000);
 	}
 
 	private static void moveToEnd() {
-
+		setWheelsToMoveForward();
+		while (true) {
+			if (ColourReadingThread.colourValue == Colour.COLOUR_GREEN) {
+				Delay.msDelay(100);
+				break;
+			} else if (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
+				float[] circleData = findCircle();
+				float circleX = circleData[0];
+				float circleY = circleData[1];
+				float radius = circleData[2];
+			}
+		}
 	}
 
 	private static void waitFiveSeconds() {
@@ -66,36 +77,36 @@ public class TheSmallProgrm {
 
 	}
 
-	private static void move() {
-		moveForward();
-		if (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
-			float[] circleData = findCircle();
-		}
-//		leftMotor.stop(true);
-//		rightMotor.stop(true);
-	}
-
 	static final float distToColourSensor = 0;
 
 	private static float[] findCircle() {
 		while (!done) {
 			System.out.println("I am a retard looking for a place to live"); // ??????
 		}
-		leftMotor.stop(true);
-		rightMotor.stop(true);
+		stopMotors();
 		return null;
 	}
 
-	private static void moveForward() {
+	private static void setWheelsToMoveForward() {
 		leftMotor.backward();
 		rightMotor.backward();
+	}
+
+	private static void moveForward(float inches) {
+		leftMotor.backward();
+		rightMotor.backward();
+		Delay.msDelay((long) (inches * ONE_INCH));
+	}
+
+	private static void stopMotors() {
+		leftMotor.stop(true);
+		rightMotor.stop(true);
 	}
 
 	private static void end() {
 		colourReadingThread.stopThread = true;
 		gyroReadingThread.stopThread = true;
-		leftMotor.stop(true);
-		rightMotor.stop(true);
+		stopMotors();
 		leftMotor.setSpeed(0);
 		rightMotor.setSpeed(0);
 	}
@@ -104,17 +115,15 @@ public class TheSmallProgrm {
 		float currentAngle = GyroReadingThread.angleValue;
 		leftMotor.backward();
 		rightMotor.forward();
-//		while (GyroReadingThread.angleValue >= currentAngle - 175) {//due to sensor/data delay, take the degree of turn you want and -5
-//		}
-		while (true) {
-			if (GyroReadingThread.angleValue <= currentAngle - 180) {
-				leftMotor.stop(true);
-				rightMotor.stop(true);
+		// due to sensor/data delay, take the degree of turn you want and -4
+
+		while (GyroReadingThread.angleValue >= currentAngle - 176) {
+			if (GyroReadingThread.angleValue < currentAngle - 177) {
+				stopMotors();
 				break;
 			}
 		}
-		leftMotor.stop(true);
-		rightMotor.stop(true);
+		stopMotors();
 	}
 
 	private static void startLineFollowingThreads() {
