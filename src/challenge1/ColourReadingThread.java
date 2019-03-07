@@ -11,8 +11,12 @@ public class ColourReadingThread extends Thread {
 	// This variable is used for ending the thread
 	boolean stopThread = false;
 
+	// This variable is used by The Small/Big Program to see if the thread is done
+	// running.
+	boolean doneThread = false;
+
 	// This variable is used for printing
-	static boolean printStuff = true;
+	static boolean printStuff = false;
 
 	// Enum for the different colours of the map
 	public static enum Colour {
@@ -22,15 +26,15 @@ public class ColourReadingThread extends Thread {
 	// This is the value to check against to see if the colour is actually a colour
 	// or if it's just white.
 	// At the competition, re-check this value.
-	public static final float GRAYSCALE_THRESHOLD = 0.21f;
+	public static final float GRAYSCALE_THRESHOLD = 0.19f;
+
+	// A variable used to check equality of floats.
+	static final double ERROR_THRESHOLD = 0.000001;
 
 	// Comment comment: change the comment to big program instead of small program.
 	// This is the colour value that is updated and can be referenced by the small
-	//// program.
+	// program.
 	static Colour colourValue = Colour.COLOUR_UNKNOWN;
-
-	//
-	static final double ERROR_THRESHOLD = 0.000001;
 
 	// Initializing color sensor
 	static Port s1 = TheSmallProgrm.brick.getPort("S1");
@@ -41,12 +45,11 @@ public class ColourReadingThread extends Thread {
 	public void run() {
 		while (stopThread == false) {
 			colourValue = getColorValue();
-			if (printStuff) {
-				System.out.println(colourValue.name());
-			}
+			print(colourValue.name());
 			Delay.msDelay(2000);
 		}
 		colorSensor.close();
+		doneThread = true;
 	}
 
 	// Old Code don't change
@@ -111,14 +114,27 @@ public class ColourReadingThread extends Thread {
 
 	}
 
-//	float map(float x, float xMin, float xMax, float mapMin, float mapMax) {
-//		return mapMin + (mapMax - mapMin) * ((x - xMin) / (xMax - xMin));
-//	}
-
+	// Kinda useless function but we can't be bothered to find some powerful Java
+	// library to do it for us.
 	static double round(double x, int d) {
 		x *= Math.pow(10, d);
 		x = Math.round(x);
 		x /= Math.pow(10, d);
 		return x;
 	}
+
+	// Some printing methods.
+	private void print(String s) {
+		if (printStuff) {
+			System.out.println(s);
+		}
+	}
+
+	@SuppressWarnings("unused")
+	private void print(float s) {
+		if (printStuff) {
+			System.out.println(s);
+		}
+	}
+
 }

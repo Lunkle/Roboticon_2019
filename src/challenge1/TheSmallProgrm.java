@@ -1,14 +1,10 @@
 package challenge1;
 
-import challenge1.ColourReadingThread.Colour;
 import lejos.hardware.Brick;
 import lejos.hardware.BrickFinder;
 import lejos.hardware.Button;
 import lejos.hardware.Key;
 import lejos.hardware.KeyListener;
-import lejos.hardware.motor.Motor;
-import lejos.hardware.motor.NXTRegulatedMotor;
-import lejos.utility.Delay;
 
 /**
  * Roboticon 2019 Team Name: TBD Team Members: Donny Ren, Johnny Tzoganakis, Dan
@@ -20,126 +16,59 @@ import lejos.utility.Delay;
 public class TheSmallProgrm {
 	static boolean done = false;
 
-	public static float Tp = 320;
-
 	static Brick brick;
 
 	static ColourReadingThread colourReadingThread;
 	static GyroReadingThread gyroReadingThread;
+	static UltrasonicReadingThread ultrasonicReadingThread;
+	static MovementTrackerThread movementTrackerThread;
 
-	public static NXTRegulatedMotor rightMotor = Motor.B;
-	public static NXTRegulatedMotor leftMotor = Motor.C;
-
-	static float leftMotorSpeed = Tp;
-	static float rightMotorSpeed = Tp;
-
-	static float xPos = 0; // This is the x position of the robot in inches.
-	static final float ONE_INCH = 160;
-
-	// MAIN/////////////////////////////////////////////////////////////////////////////
+	// MAIN METHOD
 	public static void main(String[] args) {
 		init();
-		System.out.println("Press a button to start.");
-		Button.ENTER.waitForPress();
 		startLineFollowingThreads();
-//		moveForward(12);
-		turnRight(180);
-//		moveForward(12);
-//		moveToEnd();
-//		waitFiveSeconds();
-//		returnToStart();
+		System.out.println("Press the fat button to start.");
+		Button.ENTER.waitForPress();
+
+		gyroReadingThread.resetGyro();
+		RobotMovement.moveToEnd();
+		RobotMovement.waitFiveSeconds();
+		RobotMovement.returnToStart();
+
+//		RobotMovement.moveForward(12);
 		done = true;
-		Delay.msDelay(5000);
 		end();
-		Delay.msDelay(5000);
-	}
-
-	private static void moveToEnd() {
-		setWheelsToMoveForward();
-		while (true) {
-			if (ColourReadingThread.colourValue == Colour.COLOUR_GREEN) {
-				Delay.msDelay(100);
-				break;
-			} else if (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
-				float[] circleData = findCircle();
-				float circleX = circleData[0];
-				float circleY = circleData[1];
-				float radius = circleData[2];
-			}
+		while (colourReadingThread.doneThread || gyroReadingThread.doneThread || movementTrackerThread.doneThread) {
+			// LMAO XD ROFL LOL
 		}
-	}
-
-	private static void waitFiveSeconds() {
-
-//		Delay.msDelay(period);
-	}
-
-	private static void returnToStart() {
-
-	}
-
-	static final float distToColourSensor = 0;
-
-	private static float[] findCircle() {
-		while (!done) {
-			System.out.println("I am a retard looking for a place to live"); // ??????
-		}
-		stopMotors();
-		return null;
-	}
-
-	private static void setWheelsToMoveForward() {
-		leftMotor.backward();
-		rightMotor.backward();
-	}
-
-	private static void moveForward(float inches) {
-		leftMotor.backward();
-		rightMotor.backward();
-		Delay.msDelay((long) (inches * ONE_INCH));
-	}
-
-	private static void stopMotors() {
-		leftMotor.stop(true);
-		rightMotor.stop(true);
 	}
 
 	private static void end() {
+		RobotMovement.stopMotors();
 		colourReadingThread.stopThread = true;
 		gyroReadingThread.stopThread = true;
-		stopMotors();
-		leftMotor.setSpeed(0);
-		rightMotor.setSpeed(0);
-	}
-
-	private static void turnRight(float angle) {
-		float currentAngle = GyroReadingThread.angleValue;
-		leftMotor.backward();
-		rightMotor.forward();
-		// due to sensor/data delay, take the degree of turn you want and -4
-		float targetAngle = (currentAngle - (angle - 0.057f * Tp - 0.75f));
-		while (GyroReadingThread.angleValue >= targetAngle) {
-			if (GyroReadingThread.angleValue < targetAngle) {
-				stopMotors();
-				break;
-			}
-		}
-		stopMotors();
+		ultrasonicReadingThread.stopThread = true;
+		movementTrackerThread.stopThread = true;
 	}
 
 	private static void startLineFollowingThreads() {
 		// Start colour reading thread.
 		colourReadingThread = new ColourReadingThread();
 		colourReadingThread.start();
-		ColourReadingThread.printStuff = false;
+		// Start gyro reading thread.
 		gyroReadingThread = new GyroReadingThread();
 		gyroReadingThread.start();
+		// Start ultrasonic reading thread.
+		ultrasonicReadingThread = new UltrasonicReadingThread();
+		ultrasonicReadingThread.start();
+		// Start movement tracker thread.
+		movementTrackerThread = new MovementTrackerThread();
+		movementTrackerThread.start();
 	}
 
 	public static void init() {
 		brick = BrickFinder.getDefault();
-		leftMotor.setSpeed(leftMotorSpeed);
-		rightMotor.setSpeed(rightMotorSpeed);
+		RobotMovement.initSpeeds();
 		Button.ESCAPE.addKeyListener(new KeyListener() {
 			@Override
 			public void keyPressed(Key k) {
