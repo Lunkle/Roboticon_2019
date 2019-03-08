@@ -21,6 +21,7 @@ public class TheSmallProgrm {
 	static ColourReadingThread colourReadingThread;
 	static GyroReadingThread gyroReadingThread;
 	static UltrasonicReadingThread ultrasonicReadingThread;
+	static TouchReadingThread touchReadingThread;
 	static MovementTrackerThread movementTrackerThread;
 
 	// MAIN METHOD
@@ -31,9 +32,9 @@ public class TheSmallProgrm {
 		Button.ENTER.waitForPress();
 
 		gyroReadingThread.resetGyro();
-		RobotMovement.moveToEnd();
-		RobotMovement.waitFiveSeconds();
-		RobotMovement.returnToStart();
+//		RobotMovement.moveToEnd();
+//		RobotMovement.waitFiveSeconds();
+//		RobotMovement.returnToStart();
 
 //		RobotMovement.moveForward(12);
 		done = true;
@@ -48,6 +49,7 @@ public class TheSmallProgrm {
 		colourReadingThread.stopThread = true;
 		gyroReadingThread.stopThread = true;
 		ultrasonicReadingThread.stopThread = true;
+		touchReadingThread.stopThread = true;
 		movementTrackerThread.stopThread = true;
 	}
 
@@ -61,6 +63,9 @@ public class TheSmallProgrm {
 		// Start ultrasonic reading thread.
 		ultrasonicReadingThread = new UltrasonicReadingThread();
 		ultrasonicReadingThread.start();
+		// Start touch reading thread.
+		touchReadingThread = new TouchReadingThread();
+		touchReadingThread.start();
 		// Start movement tracker thread.
 		movementTrackerThread = new MovementTrackerThread();
 		movementTrackerThread.start();

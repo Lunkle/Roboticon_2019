@@ -17,7 +17,8 @@ public class UltrasonicReadingThread extends Thread {// Variables
 	// This variable is used for printing
 	static boolean printStuff = true;
 
-	// This is the distance value that is updated and can be referenced by the small
+	// This is the distance value that is updated, and can be referenced by the
+	// small
 	// program.
 	static float distanceValue = 18;
 
@@ -32,7 +33,8 @@ public class UltrasonicReadingThread extends Thread {// Variables
 	public void run() {
 		while (stopThread == false) {
 			print("=======");
-			distanceValue = getDistanceValue() + 3.875f;
+			distanceValue = getDistanceValue();
+//			distanceValue += 3.875f;
 			print(distanceValue);
 			Delay.msDelay(1000);
 		}
@@ -44,7 +46,11 @@ public class UltrasonicReadingThread extends Thread {// Variables
 		float distance;
 		distanceMode.fetchSample(distanceSample, 0);
 		distance = distanceSample[0];
-		distance = distance / 0.0254f;
+//		
+		distance = distance * 100; // Turn into cm
+		distance = 0.937f * distance + 7.13f; // adjusts sensor data so that it matches the measured distance
+		distance = distance / 2.54f; // Converts to inches
+		distance = distance + 3.125f; // Adds distance between sensor and middle of robot (in inches)
 		return distance;
 	}
 

@@ -1,7 +1,7 @@
 package challenge1;
 
 import lejos.hardware.port.Port;
-import lejos.hardware.sensor.EV3UltrasonicSensor;
+import lejos.hardware.sensor.EV3TouchSensor;
 import lejos.robotics.SampleProvider;
 import lejos.utility.Delay;
 
@@ -17,35 +17,38 @@ public class TouchReadingThread extends Thread {// Variables
 	// This variable is used for printing
 	static boolean printStuff = true;
 
-	// This is the distance value that is updated and can be referenced by the small
-	// program.
-	static float distanceValue = 18;
+	// This is the value that is updated, and can be referenced by the small
+	// program. A value of "0" means there IS NO touch detected. A value of "1"
+	// means there IS a touch detected.
+	static float touchValue = 0;
 
-	// Initializing ultrasonic sensor
-	static Port s2 = TheSmallProgrm.brick.getPort("S2");
-	static EV3UltrasonicSensor ultrasonicSensor = new EV3UltrasonicSensor(s2);
+	// This is the amount of time after a touch for which the
+	static float lingerTime = 1000;
 
-	static SampleProvider distanceMode = ultrasonicSensor.getDistanceMode();
-	static float[] distanceSample = new float[distanceMode.sampleSize()];
+	// Initializing touch sensor
+	static Port s4 = TheSmallProgrm.brick.getPort("S4");
+	static EV3TouchSensor touchSensor = new EV3TouchSensor(s4);
+
+	static SampleProvider touchMode = touchSensor.getTouchMode();
+	static float[] touchSample = new float[touchMode.sampleSize()];
 
 	@Override
 	public void run() {
 		while (stopThread == false) {
 			print("=======");
-			distanceValue = getDistanceValue() + 3.875f;
-			print(distanceValue);
+			touchValue = getTouchValue();
+			print(touchValue);
 			Delay.msDelay(1000);
 		}
-		ultrasonicSensor.close();
+		touchSensor.close();
 		doneThread = true;
 	}
 
-	private float getDistanceValue() {
-		float distance;
-		distanceMode.fetchSample(distanceSample, 0);
-		distance = distanceSample[0];
-		distance = distance / 0.0254f;
-		return distance;
+	private float getTouchValue() {
+		float touch;
+		touchMode.fetchSample(touchSample, 0);
+		touch = touchSample[0];
+		return touch;
 	}
 
 	// Some printing methods.
@@ -55,7 +58,6 @@ public class TouchReadingThread extends Thread {// Variables
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private void print(float s) {
 		if (printStuff) {
 			System.out.println(s);
