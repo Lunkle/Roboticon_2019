@@ -22,7 +22,7 @@ public class TheSmallProgrm {
 	static GyroReadingThread gyroReadingThread;
 	static UltrasonicReadingThread ultrasonicReadingThread;
 	static TouchReadingThread touchReadingThread;
-	static MovementTrackerThread movementTrackerThread;
+	static MovementControllerThread movementControllerThread;
 
 	// MAIN METHOD
 	public static void main(String[] args) {
@@ -32,14 +32,14 @@ public class TheSmallProgrm {
 		Button.ENTER.waitForPress();
 
 		gyroReadingThread.resetGyro();
-//		RobotMovement.moveToEnd();
-//		RobotMovement.waitFiveSeconds();
-//		RobotMovement.returnToStart();
-
-//		RobotMovement.moveForward(12);
+		MovementControllerThread.setMotorsToMaxPower();
+		RobotMovement.moveToEnd();
+		RobotMovement.waitFiveSeconds();
+		RobotMovement.returnToStart();
+//		RobotMovement.turnRight(180);
 		done = true;
 		end();
-		while (colourReadingThread.doneThread || gyroReadingThread.doneThread || movementTrackerThread.doneThread) {
+		while (colourReadingThread.doneThread || gyroReadingThread.doneThread || movementControllerThread.doneThread) {
 			// LMAO XD ROFL LOL
 		}
 	}
@@ -50,7 +50,7 @@ public class TheSmallProgrm {
 		gyroReadingThread.stopThread = true;
 		ultrasonicReadingThread.stopThread = true;
 		touchReadingThread.stopThread = true;
-		movementTrackerThread.stopThread = true;
+		movementControllerThread.stopThread = true;
 	}
 
 	private static void startLineFollowingThreads() {
@@ -67,8 +67,8 @@ public class TheSmallProgrm {
 		touchReadingThread = new TouchReadingThread();
 		touchReadingThread.start();
 		// Start movement tracker thread.
-		movementTrackerThread = new MovementTrackerThread();
-		movementTrackerThread.start();
+		movementControllerThread = new MovementControllerThread();
+		movementControllerThread.start();
 	}
 
 	public static void init() {

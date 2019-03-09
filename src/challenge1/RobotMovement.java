@@ -11,7 +11,7 @@ public class RobotMovement {
 	public static NXTRegulatedMotor leftMotor = Motor.C;
 
 	// The distance of the colour sensor to the middle of the two wheels.
-	static final float LENGTH_OF_COLOUR_SENSOR_ARM = 5.75f; // TBD
+	static final float LENGTH_OF_COLOUR_SENSOR_ARM = 4.53f; // TBD
 
 	// The delay such that at the Tp of 320 it will move forward one inch by the end
 	// of 160 milliseconds.
@@ -20,24 +20,28 @@ public class RobotMovement {
 	public static void stopMotors() {
 		leftMotor.stop(true);
 		rightMotor.stop(true);
+		MovementControllerThread.setMotorsToNoPower();
 	}
 
 	public static void setWheelsToMoveForward() {
+		MovementControllerThread.setMotorsToMaxPower();
 		leftMotor.backward();
 		rightMotor.backward();
 	}
 
 	public static void setWheelsToMoveBackward() {
+		MovementControllerThread.setMotorsToMaxPower();
 		leftMotor.forward();
 		rightMotor.forward();
 	}
 
 	public static void turnLeft(float angle) {
+		MovementControllerThread.setMotorsToMaxPower();
 		float currentAngle = GyroReadingThread.angleValue;
-		leftMotor.backward();
-		rightMotor.forward();
+		leftMotor.forward();
+		rightMotor.backward();
 		// due to sensor/data delay, take the degree of turn you want and -4
-		float targetAngle = (currentAngle + (angle - 0.057f * MovementTrackerThread.leftMotorPower - 0.75f));
+		float targetAngle = (currentAngle + (angle - 0.057f * MovementControllerThread.leftTargetPower - 0.75f));
 		while (GyroReadingThread.angleValue <= targetAngle) {
 			if (GyroReadingThread.angleValue > targetAngle) {
 				stopMotors();
@@ -48,11 +52,12 @@ public class RobotMovement {
 	}
 
 	public static void turnRight(float angle) {
+		MovementControllerThread.setMotorsToMaxPower();
 		float currentAngle = GyroReadingThread.angleValue;
-		leftMotor.forward();
-		rightMotor.backward();
+		leftMotor.backward();
+		rightMotor.forward();
 		// due to sensor/data delay, take the degree of turn you want and -4
-		float targetAngle = (currentAngle - (angle - 0.057f * MovementTrackerThread.rightMotorPower - 0.75f));
+		float targetAngle = (currentAngle - (angle - 0.057f * MovementControllerThread.rightTargetPower - 0.75f));
 		while (GyroReadingThread.angleValue >= targetAngle) {
 			if (GyroReadingThread.angleValue < targetAngle) {
 				stopMotors();
@@ -70,31 +75,47 @@ public class RobotMovement {
 	}
 
 	public static void initSpeeds() {
-		leftMotor.setSpeed(MovementTrackerThread.leftMotorPower);
-		rightMotor.setSpeed(MovementTrackerThread.rightMotorPower);
+		leftMotor.setSpeed(MovementControllerThread.leftMotorPower);
+		rightMotor.setSpeed(MovementControllerThread.rightMotorPower);
 	}
 
 	public static void moveToEnd() {
+		moveForward(9);
 		while (true) {
 			setWheelsToMoveForward();
 			if (ColourReadingThread.colourValue == Colour.COLOUR_GREEN) {
-				Delay.msDelay(100);
+				moveForward(6.2f);
 				break;
-			} else if (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
-				float[] circleData = MovementTrackerThread.findCircle();
-
-				float circleX = circleData[0];
-				float circleY = circleData[1];
-				float radius = circleData[2];
+//			} else if (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
+//				float[] circleData = MovementControllerThread.findCircle();
+//
+//				float circleX = circleData[0];
+//				float circleY = circleData[1];
+//				float radius = circleData[2];
 			}
 		}
 	}
 
 	public static void waitFiveSeconds() {
-		Delay.msDelay(5000);
+		turnRight(180);
+		Delay.msDelay(4000);
 	}
 
 	public static void returnToStart() {
+		moveForward(12);
+		while (true) {
+			setWheelsToMoveForward();
+			if (ColourReadingThread.colourValue == Colour.COLOUR_GREEN) {
+				Delay.msDelay(100);
+				break;
+//			} else if (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
+//				float[] circleData = MovementControllerThread.findCircle();
+//
+//				float circleX = circleData[0];
+//				float circleY = circleData[1];
+//				float radius = circleData[2];
+			}
+		}
 
 	}
 

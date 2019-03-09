@@ -15,7 +15,7 @@ public class TouchReadingThread extends Thread {// Variables
 	boolean doneThread = false;
 
 	// This variable is used for printing
-	static boolean printStuff = true;
+	static boolean printStuff = false;
 
 	// This is the value that is updated, and can be referenced by the small
 	// program. A value of "0" means there IS NO touch detected. A value of "1"
