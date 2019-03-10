@@ -13,7 +13,7 @@ public class MovementControllerThread extends Thread {
 	boolean doneThread = false;
 
 	// This variable is used for printing.
-	static boolean printStuff = true;
+	static boolean printStuff = false;
 
 	public static final float INITIAL_POWER = 150;
 
@@ -42,6 +42,14 @@ public class MovementControllerThread extends Thread {
 	long oldTime;
 	long time;
 
+	// The delay such that at the Tp of 320 it will move forward one inch by the end
+	// of 160 milliseconds.
+	// Equation of given power to time taken: t = 300 * e^(-0.0131p + 1.61) + 146
+	static float timeToMoveOneInch = 347;
+
+	// Total displacement when moving straight (so not adding in curves) in inches.
+	static float straightDisplacement = 0;
+
 	// RUN METHOD
 	@Override
 	public void run() {
@@ -58,18 +66,31 @@ public class MovementControllerThread extends Thread {
 			print(rightMotorPower);
 			print(deltaTime);
 			print(time);
-			if (leftMotorPower < leftTargetPower) {
-				leftMotorPower = Math.min(leftMotorPower + instantaneousAcceleration, leftTargetPower);
-			} else {
-				leftMotorPower = Math.max(leftMotorPower - instantaneousDeceleration, leftTargetPower);
+			float power = (leftMotorPower + rightMotorPower) / 2.0f; // Going for that equal treatment of left and right motors.. oh yeah.
+			timeToMoveOneInch = 300 * (float) Math.pow(Math.E, -0.0131f * power + 1.61f) + 146;
+			float velocity = 1 / timeToMoveOneInch;
+			straightDisplacement = velocity * deltaTime;
+			if (RobotMovement.turning == false) {
+				if (leftMotorPower < leftTargetPower) {
+					leftMotorPower = Math.min(leftMotorPower + instantaneousAcceleration, leftTargetPower);
+				} else {
+					leftMotorPower = Math.max(leftMotorPower - instantaneousDeceleration, leftTargetPower);
+				}
+				if (rightMotorPower < rightTargetPower) {
+					rightMotorPower = Math.min(rightMotorPower + instantaneousAcceleration, rightTargetPower);
+				} else {
+					rightMotorPower = Math.max(rightMotorPower - instantaneousDeceleration, rightTargetPower);
+				}
+				if (GyroReadingThread.angleValue > 0) {
+					System.out.println("LOOOOOOOOOOOl");
+					rightMotorPower -= 5;
+				} else {
+					System.out.println("xDDDDDDDDDD"); // lol xd
+					leftMotorPower -= 5;
+				}
+				RobotMovement.leftMotor.setSpeed(leftMotorPower);
+				RobotMovement.rightMotor.setSpeed(rightMotorPower);
 			}
-			if (rightMotorPower < rightTargetPower) {
-				rightMotorPower = Math.min(rightMotorPower + instantaneousAcceleration, rightTargetPower);
-			} else {
-				rightMotorPower = Math.max(rightMotorPower - instantaneousDeceleration, rightTargetPower);
-			}
-			RobotMovement.leftMotor.setSpeed(leftMotorPower);
-			RobotMovement.rightMotor.setSpeed(rightMotorPower);
 		}
 		doneThread = true;
 	}
@@ -86,41 +107,24 @@ public class MovementControllerThread extends Thread {
 
 	public static float[] findCircle() {
 		Point[] points = new Point[3];
-
 		points[0] = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, RobotMovement.LENGTH_OF_COLOUR_SENSOR_ARM);
-
 		RobotMovement.moveForward(1);
-
 		if (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
-
 			while (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
-
 				RobotMovement.turnRight(1);
-
 			}
-
 			while (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
-
 				RobotMovement.turnRight(1);
-
 			}
-
 			points[1] = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, RobotMovement.LENGTH_OF_COLOUR_SENSOR_ARM);
-
 			while (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
-
 				RobotMovement.turnRight(1);
-
 			}
-
 			points[2] = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, RobotMovement.LENGTH_OF_COLOUR_SENSOR_ARM);
-
 			Circle c = Circle.circleFromPoints(points[0], points[1], points[2]);
 			float[] components = { c.center.x, c.center.y, c.rad };
 			return components;
-
 		}
-
 		return null;
 	}
 
@@ -131,14 +135,13 @@ public class MovementControllerThread extends Thread {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private void print(float s) {
 		if (printStuff) {
 			System.out.println(s);
 		}
 	}
 
-	private static Point pointOffsetByDistance(Point o, float angle, float dist) {
+	public static Point pointOffsetByDistance(Point o, float angle, float dist) {
 
 		return new Point((float) (o.x + dist * Math.cos(angle)), (float) (o.y + dist * Math.sin(angle)));
 	}

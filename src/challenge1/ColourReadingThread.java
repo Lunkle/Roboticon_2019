@@ -16,7 +16,7 @@ public class ColourReadingThread extends Thread {
 	boolean doneThread = false;
 
 	// This variable is used for printing
-	static boolean printStuff = false;
+	static boolean printStuff = true;
 
 	// Enum for the different colours of the map
 	public static enum Colour {
@@ -87,7 +87,7 @@ public class ColourReadingThread extends Thread {
 
 		R *= 1.0 / sampleSize;
 		G *= 1.0 / sampleSize;
-		B *= 1.5 / sampleSize;
+		B *= 1.7 / sampleSize;
 
 		double greatestValue = Math.max(Math.max(R, G), B);
 

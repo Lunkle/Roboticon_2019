@@ -32,10 +32,9 @@ public class TheSmallProgrm {
 		Button.ENTER.waitForPress();
 
 		gyroReadingThread.resetGyro();
-		MovementControllerThread.setMotorsToMaxPower();
 		RobotMovement.moveToEnd();
-		RobotMovement.waitFiveSeconds();
-		RobotMovement.returnToStart();
+//		RobotMovement.waitFiveSeconds();
+//		RobotMovement.returnToStart();
 //		RobotMovement.turnRight(180);
 		done = true;
 		end();
