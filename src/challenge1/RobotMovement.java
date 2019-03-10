@@ -24,26 +24,26 @@ public class RobotMovement {
 
 	public static void setWheelsToMoveForward() {
 		turning = false;
-		MovementControllerThread.setMotorsToMaxPower();
 		leftMotor.backward();
 		rightMotor.backward();
+		MovementControllerThread.setMotorsToMaxPower();
 	}
 
 	public static void setWheelsToMoveBackward() {
 		turning = false;
-		MovementControllerThread.setMotorsToMaxPower();
 		leftMotor.forward();
 		rightMotor.forward();
+		MovementControllerThread.setMotorsToMaxPower();
 	}
 
 	public static void turnLeft(float angle) {
 		turning = true;
-		MovementControllerThread.setMotorsToMaxPower();
 		float currentAngle = GyroReadingThread.angleValue;
-		leftMotor.forward();
-		rightMotor.backward();
 		// due to sensor/data delay, take the degree of turn you want and -4
 		float targetAngle = (currentAngle + (angle - 0.057f * MovementControllerThread.leftTargetPower - 0.75f));
+		leftMotor.forward();
+		rightMotor.backward();
+		MovementControllerThread.setMotorsToMaxPower();
 		while (GyroReadingThread.angleValue <= targetAngle) {
 			if (GyroReadingThread.angleValue > targetAngle) {
 				stopMotors();
@@ -56,12 +56,12 @@ public class RobotMovement {
 
 	public static void turnRight(float angle) {
 		turning = true;
-		MovementControllerThread.setMotorsToMaxPower();
+		// due to sensor/data delay, take the degree of turn you want and -4
 		float currentAngle = GyroReadingThread.angleValue;
+		float targetAngle = (currentAngle - (angle - 0.057f * MovementControllerThread.rightTargetPower - 0.75f));
 		leftMotor.backward();
 		rightMotor.forward();
-		// due to sensor/data delay, take the degree of turn you want and -4
-		float targetAngle = (currentAngle - (angle - 0.057f * MovementControllerThread.rightTargetPower - 0.75f));
+		MovementControllerThread.setMotorsToMaxPower();
 		while (GyroReadingThread.angleValue >= targetAngle) {
 			if (GyroReadingThread.angleValue < targetAngle) {
 				stopMotors();
@@ -76,24 +76,27 @@ public class RobotMovement {
 		if (inches == 0) {
 			return;
 		}
+		MovementControllerThread.setMotorsToMaxPower();
 		turning = false;
 		leftMotor.backward();
 		rightMotor.backward();
 		float initialDisplacement = MovementControllerThread.straightDisplacement;
 		float nextDisplacement = initialDisplacement;
 		while (true) {
+			nextDisplacement = MovementControllerThread.straightDisplacement;
 			if (nextDisplacement - initialDisplacement > inches) {
 				stopMotors();
 				break;
 			}
-
 		}
+		System.out.println("Done Moving Forwawrd");
 	}
 
 	// Returns how many inches are moved until white is seen.
 	// So much maths at work.
 	public static float moveForwardUntilSeeWhite() {
 		turning = false;
+		MovementControllerThread.setMotorsToMaxPower();
 		leftMotor.backward();
 		rightMotor.backward();
 		float initialDisplacement = MovementControllerThread.straightDisplacement;
@@ -115,11 +118,13 @@ public class RobotMovement {
 
 	public static void moveToEnd() {
 		MovementControllerThread.setMotorsToMaxPower();
-		moveForward(5);
+		moveForward(3);
 		while (true) {
 			setWheelsToMoveForward();
 			if (ColourReadingThread.colourValue == Colour.COLOUR_GREEN) {
-//				moveForward(3);	
+				moveForward(7.25f);
+				System.out.println("FOUND THE FRAKING GRWEEEN");
+				ColourReadingThread.printStuff = false;
 				break;
 //			} else if (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
 //				stopMotors();

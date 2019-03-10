@@ -16,7 +16,7 @@ public class ColourReadingThread extends Thread {
 	boolean doneThread = false;
 
 	// This variable is used for printing
-	static boolean printStuff = true;
+	static boolean printStuff = false;
 
 	// Enum for the different colours of the map
 	public static enum Colour {
@@ -26,7 +26,7 @@ public class ColourReadingThread extends Thread {
 	// This is the value to check against to see if the colour is actually a colour
 	// or if it's just white.
 	// At the competition, re-check this value.
-	public static final float GRAYSCALE_THRESHOLD = 0.19f;
+	public static final float GRAYSCALE_THRESHOLD = 0.581f;
 
 	// A variable used to check equality of floats.
 	static final double ERROR_THRESHOLD = 0.000001;
@@ -85,14 +85,14 @@ public class ColourReadingThread extends Thread {
 			B += RGBSample[2];
 		}
 
-		R *= 1.0 / sampleSize;
-		G *= 1.0 / sampleSize;
-		B *= 1.7 / sampleSize;
+		R *= 1.002386635 / sampleSize;
+		G *= 1.276595745 / sampleSize;
+		B *= 1.613316261 / sampleSize;
 
 		double greatestValue = Math.max(Math.max(R, G), B);
 
-		double grayscale = (0.2126f * R + 0.7152f * G + 0.0722f * B);
-//		double grayscale = R + G + B;
+//		double grayscale = (0.2126f * R + 0.7152f * G + 0.0722f * B);
+		double grayscale = R + G + B;
 		if (printStuff) {
 			System.out.println("R: " + round(R, 5));
 			System.out.println("G: " + round(G, 5));

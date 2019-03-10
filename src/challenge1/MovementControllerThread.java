@@ -68,9 +68,10 @@ public class MovementControllerThread extends Thread {
 			print(time);
 			float power = (leftMotorPower + rightMotorPower) / 2.0f; // Going for that equal treatment of left and right motors.. oh yeah.
 			timeToMoveOneInch = 300 * (float) Math.pow(Math.E, -0.0131f * power + 1.61f) + 146;
-			float velocity = 1 / timeToMoveOneInch;
-			straightDisplacement = velocity * deltaTime;
+			double velocity = 1 / timeToMoveOneInch;
+			straightDisplacement += velocity * deltaTime;
 			if (RobotMovement.turning == false) {
+				print("Updating Motor Speeds");
 				if (leftMotorPower < leftTargetPower) {
 					leftMotorPower = Math.min(leftMotorPower + instantaneousAcceleration, leftTargetPower);
 				} else {
@@ -82,10 +83,10 @@ public class MovementControllerThread extends Thread {
 					rightMotorPower = Math.max(rightMotorPower - instantaneousDeceleration, rightTargetPower);
 				}
 				if (GyroReadingThread.angleValue > 0) {
-					System.out.println("LOOOOOOOOOOOl");
+					print("LOOOOOOOOOOOl");
 					rightMotorPower -= 5;
 				} else {
-					System.out.println("xDDDDDDDDDD"); // lol xd
+					print("xDDDDDDDDDD"); // lol xd
 					leftMotorPower -= 5;
 				}
 				RobotMovement.leftMotor.setSpeed(leftMotorPower);
