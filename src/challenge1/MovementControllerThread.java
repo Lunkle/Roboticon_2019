@@ -1,7 +1,5 @@
 package challenge1;
 
-import challenge1.ColourReadingThread.Colour;
-
 public class MovementControllerThread extends Thread {
 	// Variables
 
@@ -47,9 +45,6 @@ public class MovementControllerThread extends Thread {
 	// Equation of given power to time taken: t = 300 * e^(-0.0131p + 1.61) + 146
 	static float timeToMoveOneInch = 347;
 
-	// Total displacement when moving straight (so not adding in curves) in inches.
-	static float straightDisplacement = 0;
-
 	// RUN METHOD
 	@Override
 	public void run() {
@@ -68,9 +63,12 @@ public class MovementControllerThread extends Thread {
 			print(time);
 			float power = (leftMotorPower + rightMotorPower) / 2.0f; // Going for that equal treatment of left and right motors.. oh yeah.
 			timeToMoveOneInch = 300 * (float) Math.pow(Math.E, -0.0131f * power + 1.61f) + 146;
-			float velocity = 1 / timeToMoveOneInch;
-			straightDisplacement = velocity * deltaTime;
-			if (RobotMovement.turning == false) {
+			double velocity = 1.0 / timeToMoveOneInch;
+			float straightDisplacement = (float) (velocity * deltaTime);
+			if (RobotMovement.movingForward == true) {
+				float angle = GyroReadingThread.angleValue;
+				yPos += Math.cos(angle) * straightDisplacement;
+				xPos += Math.sin(angle) * straightDisplacement;
 				if (leftMotorPower < leftTargetPower) {
 					leftMotorPower = Math.min(leftMotorPower + instantaneousAcceleration, leftTargetPower);
 				} else {
@@ -82,10 +80,10 @@ public class MovementControllerThread extends Thread {
 					rightMotorPower = Math.max(rightMotorPower - instantaneousDeceleration, rightTargetPower);
 				}
 				if (GyroReadingThread.angleValue > 0) {
-					System.out.println("LOOOOOOOOOOOl");
+					print("LOOOOOOOOOOOl");
 					rightMotorPower -= 5;
 				} else {
-					System.out.println("xDDDDDDDDDD"); // lol xd
+					print("xDDDDDDDDDD"); // lol xd
 					leftMotorPower -= 5;
 				}
 				RobotMovement.leftMotor.setSpeed(leftMotorPower);
@@ -105,29 +103,6 @@ public class MovementControllerThread extends Thread {
 		rightTargetPower = 0;
 	}
 
-	public static float[] findCircle() {
-		Point[] points = new Point[3];
-		points[0] = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, RobotMovement.LENGTH_OF_COLOUR_SENSOR_ARM);
-		RobotMovement.moveForward(1);
-		if (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
-			while (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
-				RobotMovement.turnRight(1);
-			}
-			while (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
-				RobotMovement.turnRight(1);
-			}
-			points[1] = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, RobotMovement.LENGTH_OF_COLOUR_SENSOR_ARM);
-			while (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
-				RobotMovement.turnRight(1);
-			}
-			points[2] = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, RobotMovement.LENGTH_OF_COLOUR_SENSOR_ARM);
-			Circle c = Circle.circleFromPoints(points[0], points[1], points[2]);
-			float[] components = { c.center.x, c.center.y, c.rad };
-			return components;
-		}
-		return null;
-	}
-
 	// Some printing methods.
 	private void print(String s) {
 		if (printStuff) {
@@ -141,8 +116,10 @@ public class MovementControllerThread extends Thread {
 		}
 	}
 
-	public static Point pointOffsetByDistance(Point o, float angle, float dist) {
-
-		return new Point((float) (o.x + dist * Math.cos(angle)), (float) (o.y + dist * Math.sin(angle)));
+	float roundAny(float x, int d) {
+		x *= Math.pow(10, d);
+		x = Math.round(x);
+		x /= Math.pow(10, d);
+		return x;
 	}
 }

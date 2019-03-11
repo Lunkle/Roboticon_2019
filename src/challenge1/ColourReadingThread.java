@@ -16,7 +16,7 @@ public class ColourReadingThread extends Thread {
 	boolean doneThread = false;
 
 	// This variable is used for printing
-	static boolean printStuff = true;
+	static boolean printStuff = false;
 
 	// Enum for the different colours of the map
 	public static enum Colour {
