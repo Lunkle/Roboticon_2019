@@ -66,7 +66,7 @@ public class RobotMovement {
 		movingStraight = false;
 	}
 
-	public static void moveForward(float inches) {
+	public static void moveForward(float inches, boolean stopAtEnd) {
 		if (inches == 0) {
 			return;
 		}
@@ -74,49 +74,35 @@ public class RobotMovement {
 		leftMotor.backward();
 		rightMotor.backward();
 		Delay.msDelay((int) (MovementControllerThread.timeToMoveOneInch * inches));
-//		double initialDisplacement = MovementControllerThread.yPos;
-//		double nextDisplacement = initialDisplacement;
-//		while (true) {
-//			nextDisplacement = MovementControllerThread.yPos;
-//			if (nextDisplacement - initialDisplacement > inches) {
-//				stopMotors();
-//				break;
-//			}
-//		}
-		stopMotors();
-		System.out.println("done moving forward");
+		if (stopAtEnd) {
+			stopMotors();
+		}
+//		System.out.println("done moving forward");
 	}
 
 	// Returns how many inches are moved until white is seen.
 	// So much maths at work.
 	public static double moveForwardUntilSeeWhite() {
+		if (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
+			return 0;
+		}
 		movingStraight = true;
+		long initialTime = System.currentTimeMillis();
+		long newTime = System.currentTimeMillis();
 		leftMotor.backward();
 		rightMotor.backward();
-		double initialDisplacement = MovementControllerThread.yPos;
+		double distance;
 		while (true) {
+			newTime = System.currentTimeMillis();
+			distance = (newTime - initialTime) * MovementControllerThread.velocity;
+			if (distance > 4.8) {
+				return 4.8;
+			}
 			if (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
-				stopMotors();
 				break;
 			}
 		}
-		double finalDisplacement = MovementControllerThread.yPos;
-		double totalDisplacement = finalDisplacement - initialDisplacement;
-		return totalDisplacement;
-	}
-
-	public static void moveBackwardUntilPressed() {
-		movingStraight = true;
-		movingBackward = true;
-		leftMotor.forward();
-		rightMotor.forward();
-		while (true) {
-			if (TouchReadingThread.touchValue == 1) {
-				stopMotors();
-				break;
-			}
-		}
-		movingBackward = false;
+		return distance;
 	}
 
 	public static ArrayList<Point> turnAndReturnPoints() {
@@ -150,25 +136,22 @@ public class RobotMovement {
 		rightMotor.setSpeed((int) MovementControllerThread.rightMotorPower);
 	}
 
-//	public static void moveToEnd() {
-//		MovementControllerThread.setMotorsToMaxPower();
-//		moveForward(81);
-//		while (true) {
-//			setWheelsToMoveForward();
-//			if (ColourReadingThread.colourValue == Colour.COLOUR_GREEN) {
-//				moveForward(3);
-//				break;
-//			} else if (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
-//				stopMotors();
-//				Delay.msDelay(1000);
-//				findCircle();
-//
-//				circleAvoidance();
-//			}
-//		}
-//
-//		System.out.println("reached end");
-//	}
+	public static void moveToEnd() {
+		moveForward(10, false);
+		while (true) {
+			setWheelsToMoveForward();
+			if (ColourReadingThread.colourValue == Colour.COLOUR_GREEN) {
+				moveForward(3, true);
+				break;
+			} else if (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
+				MovementControllerThread.setPower(300);
+
+				findCircle();
+			}
+		}
+
+		System.out.println("reached end");
+	}
 
 	public static void waitFiveSeconds() {
 		turnRight(180);
@@ -196,36 +179,38 @@ public class RobotMovement {
 		return new Point((float) (o.x + dist * Math.cos(Math.toRadians(angle))), (float) (o.y + dist * Math.sin(Math.toRadians(angle))));
 	}
 
-//	public static float[] findCircle() {
-//		float xPos = MovementControllerThread.xPos;
-//		float yPos = MovementControllerThread.yPos;
-//		ArrayList<Point> pointsToLeft = new ArrayList<Point>();
-//		ArrayList<Point> pointsToRight = new ArrayList<Point>();
-//		Point outerPoint = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, LENGTH_OF_COLOUR_SENSOR_ARM);
-//		moveForwardUntilSeeWhite();
-//		Point oppositePoint = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, LENGTH_OF_COLOUR_SENSOR_ARM);
-//		moveForward(1);
-//		turnRight(360);
-//		if (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
-//			while (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
-//				RobotMovement.turnRight(1);
-//			}
-//			while (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
-//				RobotMovement.turnRight(1);
-//			}
-//			points[1] = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, LENGTH_OF_COLOUR_SENSOR_ARM);
-//			while (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
-//				RobotMovement.turnRight(1);
-//			}
-//			points[2] = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, LENGTH_OF_COLOUR_SENSOR_ARM);
-//			Circle c = Circle.circleFromPoints(points[0], points[1], points[2]);
-//			float[] components = { c.center.x, c.center.y, c.rad };
-//			return components;
-//		}
-//		Point[] outerPoints = new Point[3];
-//		Point[] innerPoints = new Point[3];
-//		return null;
-//	}
+	public static float[] findCircle() {
+		float xPos = MovementControllerThread.xPos;
+		float yPos = MovementControllerThread.yPos;
+		ArrayList<Point> pointsToLeft = new ArrayList<Point>();
+		ArrayList<Point> pointsToRight = new ArrayList<Point>();
+		Point outerPoint = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, LENGTH_OF_COLOUR_SENSOR_ARM);
+		double distance = moveForwardUntilSeeWhite();
+		yPos += distance;
+		Point oppositePoint = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, LENGTH_OF_COLOUR_SENSOR_ARM);
+		Delay.msDelay((int) MovementControllerThread.timeToMoveOneInch);
+		yPos += 1;
+		ArrayList<Point> circlePoints = turnAndReturnPoints();
+		if (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
+			while (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
+				RobotMovement.turnRight(1);
+			}
+			while (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
+				RobotMovement.turnRight(1);
+			}
+			points[1] = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, LENGTH_OF_COLOUR_SENSOR_ARM);
+			while (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
+				RobotMovement.turnRight(1);
+			}
+			points[2] = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, LENGTH_OF_COLOUR_SENSOR_ARM);
+			Circle c = Circle.circleFromPoints(points[0], points[1], points[2]);
+			float[] components = { c.center.x, c.center.y, c.rad };
+			return components;
+		}
+		Point[] outerPoints = new Point[3];
+		Point[] innerPoints = new Point[3];
+		return null;
+	}
 
 //	public static void circleAvoidance() {
 //		movingForward = true;

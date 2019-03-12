@@ -15,9 +15,6 @@ public class MovementControllerThread extends Thread {
 
 	public static final double INITIAL_POWER = 320;
 
-	public static final float ACCELERATION = 500;
-	public static final float DECELERATION = 500;
-
 	/*
 	 * The maximum safe power for robot. (Donny note: not actually sure what the
 	 * maximum safe power is... BTW safe means that the motor accurately runs at the
@@ -27,16 +24,15 @@ public class MovementControllerThread extends Thread {
 	public static double MAX_POWER = 400;
 
 	// Left and right motors' current and target powers
-	static double leftMotorPower = INITIAL_POWER;
-	static double rightMotorPower = INITIAL_POWER;
-
+	static double leftMotorPower = 400;// INITIAL_POWER;
+	static double rightMotorPower = 400;// velocityToPower(powerToVelocity(400) * 0.68);
 	// this variable records whether or not we've detected the wall yet.a
 	static boolean detectedWall = false;
 
 	// This is the x position of the robot in inches.
-	static double xPos = 0;
+	static float xPos = 0;
 	// This is the y position of the robot in inches.
-	static double yPos = 0;
+	static float yPos = 0;
 
 	static double velocity = 0;
 
@@ -45,6 +41,9 @@ public class MovementControllerThread extends Thread {
 	// We need to keep track of time in this class because time is important.
 	long oldTime;
 	long time;
+
+	// Adjust sharpness (in rotations per second).
+	int adjust = 3;
 
 	// The delay such that at the Tp of 320 it will move forward one inch by the end
 	// of 160 milliseconds.
@@ -60,26 +59,28 @@ public class MovementControllerThread extends Thread {
 			time = System.currentTimeMillis();
 			float deltaTime = time - oldTime;
 			double power = (leftMotorPower + rightMotorPower) / 2.0f; // Going for that equal treatment of left and right motors.. oh yeah.
-			timeToMoveOneInch = 300 * Math.pow(Math.E, -0.0131f * power + 1.61f) + 146;
-			velocity = 1.0 / timeToMoveOneInch;
+			velocity = powerToVelocity(power);
+			timeToMoveOneInch = 1.0 / velocity;
 			float straightDisplacement = (float) (velocity * deltaTime);
 			double rightTempPower = rightMotorPower;
 			double leftTempPower = leftMotorPower;
 			if (RobotMovement.movingStraight == true) {
 				float angle = GyroReadingThread.angleValue;
-				yPos += Math.cos(Math.toRadians(angle)) * straightDisplacement;
-				xPos += Math.sin(Math.toRadians(angle)) * straightDisplacement;
 				if (RobotMovement.movingBackward) {
+					yPos -= Math.cos(Math.toRadians(angle)) * straightDisplacement;
+					xPos -= Math.sin(Math.toRadians(angle)) * straightDisplacement;
 					if (GyroReadingThread.angleValue > targetAngle) {
-						rightTempPower = Math.max(10, leftMotorPower - 1);
+						rightTempPower = Math.max(10, leftMotorPower - adjust);
 					} else {
-						leftTempPower = Math.max(10, rightMotorPower - 1);
+						leftTempPower = Math.max(10, rightMotorPower - adjust);
 					}
 				} else {
+					yPos += Math.cos(Math.toRadians(angle)) * straightDisplacement;
+					xPos += Math.sin(Math.toRadians(angle)) * straightDisplacement;
 					if (GyroReadingThread.angleValue > targetAngle) {
-						rightTempPower = Math.max(10, rightMotorPower - 1);
+						rightTempPower = Math.max(10, rightMotorPower - adjust);
 					} else {
-						leftTempPower = Math.max(10, leftMotorPower - 1);
+						leftTempPower = Math.max(10, leftMotorPower - adjust);
 					}
 				}
 			}
@@ -89,6 +90,22 @@ public class MovementControllerThread extends Thread {
 //			Delay.msDelay(1000);
 		}
 		doneThread = true;
+	}
+
+	// Set the motors speed
+	public static void setPower(float power) {
+		RobotMovement.leftMotor.setSpeed(power);
+		RobotMovement.rightMotor.setSpeed(power);
+	}
+
+	// Converts power to velocity.
+	public static double powerToVelocity(double power) {
+		return 1.0 / (300 * Math.pow(Math.E, -0.0131 * power + 1.61) + 146);
+	}
+
+	// Converts velocity to power.
+	public static double velocityToPower(double velocity) {
+		return (Math.log(((1 / velocity) - 146) / 300) - 1.61) / -0.0131;
 	}
 
 	// Some printing methods.
