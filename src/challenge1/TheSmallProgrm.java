@@ -45,16 +45,17 @@ public class TheSmallProgrm {
 //		RobotMovement.moveToEnd();
 //		RobotMovement.waitFiveSeconds();
 //		RobotMovement.returnToStart();
-		for (int i = 10; i < 30; i++) {
-			for (int j = 0; j < 2; j++) {
-				System.out.println("i: " + i);
-				RobotMovement.moveForward(i);
-				System.out.println("Getting the distance...");
-				float actualDistance = UltrasonicSensorClass.getDistanceValue();
-				fw.write("Given distance: " + i + ", Actual Distance: " + actualDistance);
-				RobotMovement.moveBackwardUntilPressed();
-			}
-		}
+		RobotMovement.moveForward(26);
+//		for (int i = 10; i < 30; i++) {
+//			for (int j = 0; j < 2; j++) {
+//				System.out.println("i: " + i);
+//				RobotMovement.moveForward(i);
+//				System.out.println("Getting the distance...");
+//				float actualDistance = UltrasonicSensorClass.getDistanceValue();
+//				fw.write("Given distance: " + i + ", Actual Distance: " + actualDistance);
+//				RobotMovement.moveBackwardUntilPressed();
+//			}
+//		}
 		done = true;
 		end();
 		while (colourReadingThread.doneThread || gyroReadingThread.doneThread || movementControllerThread.doneThread) {

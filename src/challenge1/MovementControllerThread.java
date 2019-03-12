@@ -13,7 +13,7 @@ public class MovementControllerThread extends Thread {
 	// This variable is used for printing.
 	static boolean printStuff = false;
 
-	public static final double INITIAL_POWER = 150;
+	public static final double INITIAL_POWER = 320;
 
 	public static final float ACCELERATION = 500;
 	public static final float DECELERATION = 500;
@@ -29,9 +29,6 @@ public class MovementControllerThread extends Thread {
 	// Left and right motors' current and target powers
 	static double leftMotorPower = INITIAL_POWER;
 	static double rightMotorPower = INITIAL_POWER;
-
-	public static double leftTargetPower = INITIAL_POWER;
-	public static double rightTargetPower = INITIAL_POWER;
 
 	// this variable records whether or not we've detected the wall yet.a
 	static boolean detectedWall = false;
@@ -62,63 +59,36 @@ public class MovementControllerThread extends Thread {
 			oldTime = time;
 			time = System.currentTimeMillis();
 			float deltaTime = time - oldTime;
-			double instantaneousAcceleration = ACCELERATION * deltaTime / 1000.0f;
-			double instantaneousDeceleration = DECELERATION * deltaTime / 1000.0f;
-			print("============");
-			print(instantaneousAcceleration);
-			print(leftMotorPower);
-			print(rightMotorPower);
-			print(deltaTime);
-			print(time);
 			double power = (leftMotorPower + rightMotorPower) / 2.0f; // Going for that equal treatment of left and right motors.. oh yeah.
 			timeToMoveOneInch = 300 * Math.pow(Math.E, -0.0131f * power + 1.61f) + 146;
 			velocity = 1.0 / timeToMoveOneInch;
 			float straightDisplacement = (float) (velocity * deltaTime);
-			if (leftMotorPower < leftTargetPower) {
-				leftMotorPower = Math.min(leftMotorPower + instantaneousAcceleration, leftTargetPower);
-			} else {
-				leftMotorPower = Math.max(leftMotorPower - instantaneousDeceleration, leftTargetPower);
-			}
-			if (rightMotorPower < rightTargetPower) {
-				rightMotorPower = Math.min(rightMotorPower + instantaneousAcceleration, rightTargetPower);
-			} else {
-				rightMotorPower = Math.max(rightMotorPower - instantaneousDeceleration, rightTargetPower);
-			}
+			double rightTempPower = rightMotorPower;
+			double leftTempPower = leftMotorPower;
 			if (RobotMovement.movingStraight == true) {
 				float angle = GyroReadingThread.angleValue;
 				yPos += Math.cos(Math.toRadians(angle)) * straightDisplacement;
 				xPos += Math.sin(Math.toRadians(angle)) * straightDisplacement;
 				if (RobotMovement.movingBackward) {
 					if (GyroReadingThread.angleValue > targetAngle) {
-						rightMotorPower = Math.max(10, leftMotorPower - 5);
+						rightTempPower = Math.max(10, leftMotorPower - 1);
 					} else {
-						leftMotorPower = Math.max(10, rightMotorPower - 5);
+						leftTempPower = Math.max(10, rightMotorPower - 1);
 					}
 				} else {
 					if (GyroReadingThread.angleValue > targetAngle) {
-						rightMotorPower = Math.max(10, rightMotorPower - 5);
+						rightTempPower = Math.max(10, rightMotorPower - 1);
 					} else {
-						leftMotorPower = Math.max(10, leftMotorPower - 5);
+						leftTempPower = Math.max(10, leftMotorPower - 1);
 					}
 				}
 			}
-			RobotMovement.leftMotor.setSpeed((float) leftMotorPower);
-			RobotMovement.rightMotor.setSpeed((float) rightMotorPower);
+			RobotMovement.leftMotor.setSpeed((float) leftTempPower);
+			RobotMovement.rightMotor.setSpeed((float) rightTempPower);
 //			System.out.println(roundAny(xPos, 2) + " " + roundAny(yPos, 2));
 //			Delay.msDelay(1000);
 		}
 		doneThread = true;
-	}
-
-	public static void setMotorsToMaxPower() {
-		leftTargetPower = MAX_POWER;
-		rightTargetPower = MAX_POWER;
-	}
-
-	public static void setMotorsToNoPower() {
-		leftTargetPower = 1;
-		rightTargetPower = 1;
-
 	}
 
 	// Some printing methods.

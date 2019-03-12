@@ -19,13 +19,6 @@ public class RobotMovement {
 	static final float LENGTH_OF_COLOUR_SENSOR_ARM = 4.53f; // TBD
 
 	public static void stopMotors() {
-		MovementControllerThread.setMotorsToNoPower();
-		movingStraight = true;
-		while (MovementControllerThread.velocity > 0.01) {
-			if (MovementControllerThread.velocity <= 0.01) {
-				break;
-			}
-		}
 		leftMotor.stop(true);
 		rightMotor.stop(true);
 		movingStraight = false;
@@ -33,19 +26,17 @@ public class RobotMovement {
 
 	public static void setWheelsToMoveForward() {
 		movingStraight = true;
-		MovementControllerThread.setMotorsToMaxPower();
 		leftMotor.backward();
 		rightMotor.backward();
 	}
 
 	public static void turnLeft(float angle) {
 		movingStraight = false;
-		MovementControllerThread.setMotorsToMaxPower();
 		float currentAngle = GyroReadingThread.angleValue;
 		leftMotor.forward();
 		rightMotor.backward();
 		// due to sensor/data delay, take the degree of turn you want and -4
-		double targetAngle = currentAngle + (angle - 0.057f * MovementControllerThread.leftTargetPower - 0.75f);
+		double targetAngle = currentAngle + (angle - 0.057f * MovementControllerThread.leftMotorPower - 0.75f);
 		while (GyroReadingThread.angleValue <= targetAngle) {
 			if (GyroReadingThread.angleValue > targetAngle) {
 				stopMotors();
@@ -62,9 +53,8 @@ public class RobotMovement {
 		float currentAngle = GyroReadingThread.angleValue;
 		leftMotor.backward();
 		rightMotor.forward();
-		MovementControllerThread.setMotorsToMaxPower();
 		// due to sensor/data delay, take the degree of turn you want and -4
-		double targetAngle = currentAngle - (angle - 0.057f * MovementControllerThread.rightTargetPower - 0.75f);
+		double targetAngle = currentAngle - (angle - 0.057f * MovementControllerThread.rightMotorPower - 0.75f);
 		while (GyroReadingThread.angleValue >= targetAngle) {
 			if (GyroReadingThread.angleValue < targetAngle) {
 				stopMotors();
@@ -83,16 +73,17 @@ public class RobotMovement {
 		movingStraight = true;
 		leftMotor.backward();
 		rightMotor.backward();
-		MovementControllerThread.setMotorsToMaxPower();
-		double initialDisplacement = MovementControllerThread.yPos;
-		double nextDisplacement = initialDisplacement;
-		while (true) {
-			nextDisplacement = MovementControllerThread.yPos;
-			if (nextDisplacement - initialDisplacement > inches) {
-				stopMotors();
-				break;
-			}
-		}
+		Delay.msDelay((int) (MovementControllerThread.timeToMoveOneInch * inches));
+//		double initialDisplacement = MovementControllerThread.yPos;
+//		double nextDisplacement = initialDisplacement;
+//		while (true) {
+//			nextDisplacement = MovementControllerThread.yPos;
+//			if (nextDisplacement - initialDisplacement > inches) {
+//				stopMotors();
+//				break;
+//			}
+//		}
+		stopMotors();
 		System.out.println("done moving forward");
 	}
 
@@ -102,7 +93,6 @@ public class RobotMovement {
 		movingStraight = true;
 		leftMotor.backward();
 		rightMotor.backward();
-		MovementControllerThread.setMotorsToMaxPower();
 		double initialDisplacement = MovementControllerThread.yPos;
 		while (true) {
 			if (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
@@ -112,7 +102,6 @@ public class RobotMovement {
 		}
 		double finalDisplacement = MovementControllerThread.yPos;
 		double totalDisplacement = finalDisplacement - initialDisplacement;
-		MovementControllerThread.yPos += totalDisplacement;
 		return totalDisplacement;
 	}
 
@@ -121,7 +110,6 @@ public class RobotMovement {
 		movingBackward = true;
 		leftMotor.forward();
 		rightMotor.forward();
-		MovementControllerThread.setMotorsToMaxPower();
 		while (true) {
 			if (TouchReadingThread.touchValue == 1) {
 				stopMotors();
@@ -137,9 +125,8 @@ public class RobotMovement {
 		float currentAngle = GyroReadingThread.angleValue;
 		leftMotor.backward();
 		rightMotor.forward();
-		MovementControllerThread.setMotorsToMaxPower();
 		// due to sensor/data delay, take the degree of turn you want and -4
-		double targetAngle = currentAngle - (360 - 0.057f * MovementControllerThread.rightTargetPower - 0.75f);
+		double targetAngle = currentAngle - (360 - 0.057f * MovementControllerThread.rightMotorPower - 0.75f);
 		Colour currentColour = ColourReadingThread.colourValue;
 		while (GyroReadingThread.angleValue >= targetAngle) {
 			if (GyroReadingThread.angleValue < targetAngle) {
@@ -189,7 +176,6 @@ public class RobotMovement {
 	}
 
 	public static void returnToStart() {
-		MovementControllerThread.setMotorsToMaxPower();
 		moveForward(12);
 		while (true) {
 			setWheelsToMoveForward();
