@@ -24,8 +24,8 @@ public class MovementControllerThread extends Thread {
 	public static double MAX_POWER = 400;
 
 	// Left and right motors' current and target powers
-	static double leftMotorPower = 400;// INITIAL_POWER;
-	static double rightMotorPower = 400;// velocityToPower(powerToVelocity(400) * 0.68);
+	static double leftMotorPower = 400; // INITIAL_POWER;
+	static double rightMotorPower = 400; // velocityToPower(powerToVelocity(400) * 0.6);
 	// this variable records whether or not we've detected the wall yet.a
 	static boolean detectedWall = false;
 
@@ -68,7 +68,7 @@ public class MovementControllerThread extends Thread {
 				float angle = GyroReadingThread.angleValue;
 				if (RobotMovement.movingBackward) {
 					yPos -= Math.cos(Math.toRadians(angle)) * straightDisplacement;
-					xPos -= Math.sin(Math.toRadians(angle)) * straightDisplacement;
+					xPos += Math.sin(Math.toRadians(angle)) * straightDisplacement;
 					if (GyroReadingThread.angleValue > targetAngle) {
 						rightTempPower = Math.max(10, leftMotorPower - adjust);
 					} else {
@@ -76,7 +76,7 @@ public class MovementControllerThread extends Thread {
 					}
 				} else {
 					yPos += Math.cos(Math.toRadians(angle)) * straightDisplacement;
-					xPos += Math.sin(Math.toRadians(angle)) * straightDisplacement;
+					xPos -= Math.sin(Math.toRadians(angle)) * straightDisplacement;
 					if (GyroReadingThread.angleValue > targetAngle) {
 						rightTempPower = Math.max(10, rightMotorPower - adjust);
 					} else {
@@ -94,6 +94,9 @@ public class MovementControllerThread extends Thread {
 
 	// Set the motors speed
 	public static void setPower(float power) {
+		leftMotorPower = power;
+		rightMotorPower = power;
+		velocity = powerToVelocity(power);
 		RobotMovement.leftMotor.setSpeed(power);
 		RobotMovement.rightMotor.setSpeed(power);
 	}
@@ -106,25 +109,6 @@ public class MovementControllerThread extends Thread {
 	// Converts velocity to power.
 	public static double velocityToPower(double velocity) {
 		return (Math.log(((1 / velocity) - 146) / 300) - 1.61) / -0.0131;
-	}
-
-	// Some printing methods.
-	private void print(String s) {
-		if (printStuff) {
-			System.out.println(s);
-		}
-	}
-
-	private void print(float s) {
-		if (printStuff) {
-			System.out.println(s);
-		}
-	}
-
-	private void print(double s) {
-		if (printStuff) {
-			System.out.println(s);
-		}
 	}
 
 	double roundAny(double x, int d) {

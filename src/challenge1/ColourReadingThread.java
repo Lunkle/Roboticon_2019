@@ -3,7 +3,6 @@ package challenge1;
 import lejos.hardware.port.Port;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.robotics.SampleProvider;
-import lejos.utility.Delay;
 
 public class ColourReadingThread extends Thread {
 	// Variables
@@ -46,7 +45,6 @@ public class ColourReadingThread extends Thread {
 		while (stopThread == false) {
 			colourValue = getColorValue();
 			print(colourValue.name());
-			Delay.msDelay(2000);
 		}
 		colorSensor.close();
 		doneThread = true;
@@ -71,7 +69,7 @@ public class ColourReadingThread extends Thread {
 	 */
 	static SampleProvider RGBMode = colorSensor.getRGBMode();
 	static float[] RGBSample = new float[RGBMode.sampleSize()];
-	static int sampleSize = 100;
+	static int sampleSize = 1;
 
 	public static Colour getColorValue() {
 		double R = 0;

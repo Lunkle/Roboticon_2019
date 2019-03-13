@@ -13,11 +13,27 @@ public class Point {
 		y = p.y;
 	}
 
+	static Point averagePoint(Point... points) {
+		Point mid = new Point(0, 0);
+		for (Point point : points) {
+			mid.x += point.x;
+			mid.y += point.y;
+		}
+		mid.x /= points.length;
+		mid.y /= points.length;
+		return mid;
+	}
+
 	float distTo(Point b) {
 		return (float) (Math.sqrt((this.x - b.x) * (this.x - b.x) + (this.y - b.y) * (this.y - b.y)));
 	}
 
 	static float dist(Point a, Point b) {
 		return (float) (Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y)));
+	}
+
+	@Override
+	public String toString() {
+		return this.x + "," + this.y;
 	}
 }

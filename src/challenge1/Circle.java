@@ -2,13 +2,13 @@ package challenge1;
 
 public class Circle {
 	Point center;
-	float rad;
+	float radius;
 
 	private static float threshold = 0.00001f;
 
 	Circle(Point c, float r) {
 		center = c;
-		rad = r;
+		radius = r;
 	}
 
 	private static boolean isPerpendicular(Point a, Point b, Point c) {
@@ -49,7 +49,7 @@ public class Circle {
 		return new Circle(center, r);
 	}
 
-	static Circle circleFromPoints(Point a, Point b, Point c) {
+	public static Circle circleFromPoints(Point a, Point b, Point c) {
 
 		if (!isPerpendicular(a, b, c))
 			return calcCircle(a, b, c);
@@ -65,5 +65,10 @@ public class Circle {
 			return calcCircle(c, a, b);
 
 		return null;
+	}
+
+	@Override
+	public String toString() {
+		return center.toString() + "," + radius;
 	}
 }

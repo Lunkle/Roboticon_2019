@@ -1,6 +1,5 @@
 package challenge1;
 
-import java.io.FileWriter;
 import java.io.IOException;
 
 import lejos.hardware.Brick;
@@ -8,6 +7,7 @@ import lejos.hardware.BrickFinder;
 import lejos.hardware.Button;
 import lejos.hardware.Key;
 import lejos.hardware.KeyListener;
+import lejos.utility.Delay;
 
 /*
  * Roboticon 2019
@@ -23,8 +23,6 @@ import lejos.hardware.KeyListener;
 public class TheSmallProgrm {
 	static boolean done = false;
 
-	public static FileWriter fw;
-
 	static Brick brick;
 
 	static ColourReadingThread colourReadingThread;
@@ -36,16 +34,17 @@ public class TheSmallProgrm {
 	public static void main(String[] args) throws IOException {
 		init();
 		startLineFollowingThreads();
-		fw = new FileWriter("SmallProgramOut.txt");
 //		fw.write("Starting program\n");
 		System.out.println("Press the fat button to start.");
 		Button.ENTER.waitForPress();
 
 		gyroReadingThread.resetGyro();
 		RobotMovement.moveToEnd();
+//		RobotMovement.moveForward(100, true);
 //		RobotMovement.waitFiveSeconds();
 //		RobotMovement.returnToStart();
 //		System.out.println(MovementControllerThread.rightMotorPower);
+		Delay.msDelay(10000);
 		done = true;
 		end();
 		while (colourReadingThread.doneThread || gyroReadingThread.doneThread || movementControllerThread.doneThread) {
@@ -53,15 +52,12 @@ public class TheSmallProgrm {
 		}
 	}
 
-	private static void end() throws IOException {
+	private static void end() {
 		RobotMovement.stopMotors();
 		colourReadingThread.stopThread = true;
 		gyroReadingThread.stopThread = true;
 		touchReadingThread.stopThread = true;
 		movementControllerThread.stopThread = true;
-		fw.write("Ending Program\n");
-		fw.flush();
-		fw.close();
 	}
 
 	private static void startLineFollowingThreads() {
