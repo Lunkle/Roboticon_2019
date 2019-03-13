@@ -1,6 +1,10 @@
 package challenge1;
 
 public class Point {
+	
+	public static final boolean PRINT_IN_GRAPHING_MODE = true;
+	
+	
 	float x, y;
 
 	Point(float x, float y) {
@@ -34,6 +38,10 @@ public class Point {
 
 	@Override
 	public String toString() {
-		return this.x + "," + this.y;
+		String string = this.x + "," + this.y;
+		if (PRINT_IN_GRAPHING_MODE) {
+			string = "(" + string + ")";
+		}
+		return string;
 	}
 }
