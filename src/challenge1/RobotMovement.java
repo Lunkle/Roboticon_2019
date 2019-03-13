@@ -84,32 +84,34 @@ public class RobotMovement {
 //		System.out.println("done moving forward");
 	}
 
+	public static double distanceBeforeStopped = 0.5;
+
 	// Returns how many inches are moved until white is seen.
 	// So much maths at work.
-	public static double moveForwardUntilSeeWhite() {
+	public static double moveForwardUntilSeeWhite(long timeStart) {
 		if (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
-			return 0;
+			return distanceBeforeStopped;
 		}
+		MovementControllerThread.setPower(200);
 		movingStraight = true;
-		long initialTime = System.currentTimeMillis();
 		long newTime = System.currentTimeMillis();
 		leftMotor.backward();
 		rightMotor.backward();
 		double distance;
 		while (true) {
 			newTime = System.currentTimeMillis();
-			distance = (newTime - initialTime) * MovementControllerThread.velocity;
-			if (distance > 4.8) {
+			distance = (newTime - timeStart) * MovementControllerThread.velocity;
+			if (distance > 4.8 - distanceBeforeStopped) {
 				return 4.8;
 			}
 			if (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
 				break;
 			}
 		}
-		return distance;
+		return distanceBeforeStopped + distance;
 	}
 
-	public static Point[] turnAndReturnPoints() {
+	public static Point[] turnAndReturnPoints(float yPos) {
 		movingStraight = false;
 		Point[] points = new Point[5];
 		float currentAngle = GyroReadingThread.angleValue;
@@ -121,7 +123,6 @@ public class RobotMovement {
 		Colour currentColour = ColourReadingThread.colourValue;
 		float angleValue = GyroReadingThread.angleValue;
 		float xPos = MovementControllerThread.xPos;
-		float yPos = MovementControllerThread.yPos;
 		ArrayList<Float> distanceFromWallValues = new ArrayList<>();
 //		Point 
 		int pointIndex = 0;
@@ -138,8 +139,8 @@ public class RobotMovement {
 			}
 			Colour newColour = ColourReadingThread.colourValue;
 			if ((currentColour == Colour.COLOUR_BLUE && newColour == Colour.COLOUR_WHITE) || (currentColour == Colour.COLOUR_WHITE && newColour == Colour.COLOUR_BLUE)) {
-				Point foundPoint = pointOffsetByDistance(new Point(xPos, yPos), angleValue, LENGTH_OF_COLOUR_SENSOR_ARM);
-				System.out.println("Point " + pointIndex + " found at " + roundAny(foundPoint.x, 2) + "," + roundAny(foundPoint.y, 2));
+				Point foundPoint = pointOffsetByDistance(new Point(xPos, yPos), angleValue - 5, LENGTH_OF_COLOUR_SENSOR_ARM);
+				System.out.println(foundPoint);
 				points[pointIndex] = foundPoint;
 				pointIndex++;
 				stopMotors();
@@ -174,8 +175,8 @@ public class RobotMovement {
 				moveForward(3, true);
 				break;
 			} else if (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
-				MovementControllerThread.setPower(300);
-				float[] circle = findCircle();
+				long timeWhenSeeBlue = System.currentTimeMillis();
+				float[] circle = findCircle(timeWhenSeeBlue);
 				if (circle != null) {
 
 					for (int i = 0; i < circle.length; i++) {
@@ -215,19 +216,21 @@ public class RobotMovement {
 		return new Point((float) (o.x - dist * Math.sin(Math.toRadians(angle))), (float) (o.y + dist * Math.cos(Math.toRadians(angle))));
 	}
 
-	public static float[] findCircle() {
+	public static float[] findCircle(long timeWhenSeeBlue) {
+//		stopMotors();
 		float xPos = MovementControllerThread.xPos;
 		float yPos = 0;
+		double distance = moveForwardUntilSeeWhite(timeWhenSeeBlue); // Gotta catch em all.
 		Point outerPoint = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, LENGTH_OF_COLOUR_SENSOR_ARM);
-		double distance = moveForwardUntilSeeWhite();
-		System.out.println("Distance is " + distance);
 		yPos += distance;
 		Point oppositePoint = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, LENGTH_OF_COLOUR_SENSOR_ARM);
-		System.out.println("First Point: " + outerPoint);
-		System.out.println("Second Point: " + oppositePoint.x + "," + oppositePoint.y);
-		Delay.msDelay((int) MovementControllerThread.timeToMoveOneInch);
+		System.out.println("Distance is " + distance);
+		System.out.println(outerPoint);
+		System.out.println(oppositePoint);
+//		moveForward(1, true);
+//		Delay.msDelay((int) MovementControllerThread.timeToMoveOneInch);
 		yPos += 1;
-		Point[] circlePoints = turnAndReturnPoints();
+		Point[] circlePoints = turnAndReturnPoints(yPos);
 		Point[][] splitPoints = splitInMiddle(xPos, Arrays.copyOfRange(circlePoints, 0, 4));
 		Point[] below = splitPoints[0];
 		Point[] above = splitPoints[1];
