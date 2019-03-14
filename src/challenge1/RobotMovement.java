@@ -120,7 +120,7 @@ public class RobotMovement {
 		rightMotor.forward();
 		// due to sensor/data delay, take the degree of turn you want and -4
 		double targetAngle = currentAngle - (360 - 0.057f * MovementControllerThread.rightMotorPower - 0.75f);
-		Colour currentColour = ColourReadingThread.colourValue;
+		Colour oldColour = ColourReadingThread.colourValue;
 		float angleValue = GyroReadingThread.angleValue;
 		float xPos = MovementControllerThread.xPos;
 		ArrayList<Float> distanceFromWallValues = new ArrayList<>();
@@ -138,8 +138,8 @@ public class RobotMovement {
 				break;
 			}
 			Colour newColour = ColourReadingThread.colourValue;
-			if ((currentColour == Colour.COLOUR_BLUE && newColour == Colour.COLOUR_WHITE) || (currentColour == Colour.COLOUR_WHITE && newColour == Colour.COLOUR_BLUE)) {
-				Point foundPoint = pointOffsetByDistance(new Point(xPos, yPos), angleValue - 5, LENGTH_OF_COLOUR_SENSOR_ARM);
+			if ((oldColour == Colour.COLOUR_BLUE && newColour == Colour.COLOUR_WHITE) || (oldColour == Colour.COLOUR_WHITE && newColour == Colour.COLOUR_BLUE)) {
+				Point foundPoint = pointOffsetByDistance(new Point(xPos, yPos), angleValue + 3, LENGTH_OF_COLOUR_SENSOR_ARM);
 				System.out.println(foundPoint);
 				points[pointIndex] = foundPoint;
 				pointIndex++;
@@ -149,7 +149,7 @@ public class RobotMovement {
 				rightMotor.forward();
 
 			}
-			currentColour = newColour;
+			oldColour = newColour;
 		}
 		stopMotors();
 		float sumOfDistancesFromWall = 0;
@@ -202,12 +202,12 @@ public class RobotMovement {
 //			if (ColourReadingThread.colourValue == Colour.COLOUR_GREEN) {
 //				Delay.msDelay(100);
 //				break;
-////			} else if (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
-////				float[] circleData = MovementControllerThread.findCircle();
-////
-////				float circleX = circleData[0];
-////				float circleY = circleData[1];
-////				float radius = circleData[2];
+//			} else if (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
+//				float[] circleData = MovementControllerThread.findCircle();
+//
+//				float circleX = circleData[0];
+//				float circleY = circleData[1];
+//				float radius = circleData[2];
 //			}
 //		}
 //	}
@@ -229,7 +229,7 @@ public class RobotMovement {
 		System.out.println(oppositePoint);
 //		moveForward(1, true);
 //		Delay.msDelay((int) MovementControllerThread.timeToMoveOneInch);
-		yPos += 1;
+		yPos += 2;
 		Point[] circlePoints = turnAndReturnPoints(yPos);
 		Point[][] splitPoints = splitInMiddle(xPos, Arrays.copyOfRange(circlePoints, 0, 4));
 		Point[] below = splitPoints[0];
