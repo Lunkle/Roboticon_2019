@@ -44,7 +44,6 @@ public class ColourReadingThread extends Thread {
 	@Override
 	public void run() {
 		while (stopThread == false) {
-			System.out.println("Target Angle is: " + MovementControllerThread.targetAngle);
 			colourValue = getColorValue();
 			print(colourValue.name());
 		}

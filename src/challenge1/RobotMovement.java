@@ -23,7 +23,7 @@ public class RobotMovement {
 	static final float LENGTH_OF_ULTRASONIC_ARM = 3.5f;
 
 	static final float HALF_ROBOT_WIDTH = 1.57f;
-	static final float ERROR_ANGLE = 3f;
+	static final float ERROR_ANGLE = 5;
 
 	public static void stopMotors() {
 		leftMotor.stop(true);
@@ -285,21 +285,24 @@ public class RobotMovement {
 		if (theta < 180) {
 			turnLeft(theta);
 			turnRight = true;
+			MovementControllerThread.targetAngle -= theta;
 		} else {
 			turnRight(360 - theta);
+			MovementControllerThread.targetAngle += 360 - theta;
 		}
 		float velocityRatio = (radius - HALF_ROBOT_WIDTH) / (radius + HALF_ROBOT_WIDTH);
-		float powerRatio = (float) MovementControllerThread.velocityToPower(MovementControllerThread.powerToVelocity(1) * velocityRatio);
+		float power = 300;
+		float powerValue = (float) MovementControllerThread.velocityToPower(MovementControllerThread.powerToVelocity(power) * velocityRatio);
 		if (turnRight) {
-			MovementControllerThread.leftMotorPower = 300;
-			MovementControllerThread.rightMotorPower = 300 * powerRatio;
-			leftMotor.setSpeed(300);
-			rightMotor.setSpeed(300 * powerRatio);
+			MovementControllerThread.leftMotorPower = power;
+			MovementControllerThread.rightMotorPower = powerValue;
+			leftMotor.setSpeed(power);
+			rightMotor.setSpeed(powerValue);
 		} else {
-			MovementControllerThread.rightMotorPower = 300;
-			MovementControllerThread.leftMotorPower = 300 * powerRatio;
-			rightMotor.setSpeed(300);
-			leftMotor.setSpeed(300 * powerRatio);
+			MovementControllerThread.rightMotorPower = power;
+			MovementControllerThread.leftMotorPower = powerValue;
+			rightMotor.setSpeed(power);
+			leftMotor.setSpeed(powerValue);
 		}
 		setWheelsToMoveForward();
 		while (true) {
