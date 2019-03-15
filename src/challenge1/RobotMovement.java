@@ -173,7 +173,7 @@ public class RobotMovement {
 	}
 
 	public static void moveToEnd() {
-		MovementControllerThread.setPower(200);
+		MovementControllerThread.setPower(300);
 		moveForward(3, false);
 		while (true) {
 			setWheelsToMoveForward();
@@ -184,7 +184,9 @@ public class RobotMovement {
 				long timeWhenSeeBlue = System.currentTimeMillis();
 				float[] circle = findCircle(timeWhenSeeBlue);
 				if (circle != null) {
-					System.out.println("(x-(" + circle[0] + "))^2 + (y-(" + circle[1] + "))^2 = " + Math.pow(circle[2], 2));
+					for (int i = 0; i < circle.length; i++) {
+						System.out.println("Final Circle component " + i + "," + circle[i]);
+					}
 					avoidCircle(circle[0], circle[1], circle[2], circle[3], circle[4]);
 				}
 				break;// To remove
@@ -234,7 +236,7 @@ public class RobotMovement {
 //		moveForward(1, true);
 //		Delay.msDelay((int) MovementControllerThread.timeToMoveOneInch);
 		moveForward(1, true);
-		yPos += 1.6;
+		yPos += 1.2;
 		Point[] circlePoints = turnAndReturnPoints(yPos);
 		System.out.println("Distance is " + distance);
 		Point[][] splitPoints = splitInMiddle(xPos, Arrays.copyOfRange(circlePoints, 0, 4));
@@ -304,6 +306,8 @@ public class RobotMovement {
 		}
 		setWheelsToMoveForward();
 		while (true) {
+			System.out.println(Math.abs(GyroReadingThread.angleValue - MovementControllerThread.targetAngle) < ERROR_ANGLE);
+			System.out.println("Values: " + GyroReadingThread.angleValue + ", " + MovementControllerThread.targetAngle);
 			if (Math.abs(GyroReadingThread.angleValue - MovementControllerThread.targetAngle) < ERROR_ANGLE) {
 				stopMotors();
 				break;
