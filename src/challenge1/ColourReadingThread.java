@@ -46,7 +46,6 @@ public class ColourReadingThread extends Thread {
 		while (stopThread == false) {
 			colourValue = getColorValue();
 			print(colourValue.name());
-			print("===============");
 		}
 		colorSensor.close();
 		doneThread = true;

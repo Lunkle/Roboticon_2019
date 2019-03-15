@@ -23,7 +23,7 @@ public class RobotMovement {
 	static final float LENGTH_OF_ULTRASONIC_ARM = 3.5f;
 
 	static final float HALF_ROBOT_WIDTH = 1.57f;
-	static final float ERROR_ANGLE = 2.5f;
+	static final float ERROR_ANGLE = 5;
 
 	public static void stopMotors() {
 		leftMotor.stop(true);
@@ -148,9 +148,9 @@ public class RobotMovement {
 				System.out.println(foundPoint);
 				points[pointIndex] = foundPoint;
 				pointIndex++;
-//				stopMotors();
-//				leftMotor.backward();
-//				rightMotor.forward();
+				stopMotors();
+				leftMotor.backward();
+				rightMotor.forward();
 
 			}
 			oldColour = newColour;
@@ -226,9 +226,6 @@ public class RobotMovement {
 		float xPos = MovementControllerThread.xPos;
 		float yPos = 0;
 		double distance = moveForwardUntilSeeWhite(timeWhenSeeBlue); // Gotta catch em all.
-		if (distance >= 4.8) {
-			return null;
-		}
 		Point outerPoint = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, LENGTH_OF_COLOUR_SENSOR_ARM);
 		System.out.println(outerPoint);
 		yPos += distance;
@@ -291,20 +288,21 @@ public class RobotMovement {
 			turnRight(360 - theta);
 			MovementControllerThread.targetAngle += 360 - theta;
 		}
-
+		
 		// Now move along the outer boundaries of the known circle
-		// aroundCircleUsingDifferentMotorPower(radius, turnRight);
-
-		aroundCircleLineFollower(turnRight);
+		aroundCircleUsingDifferentMotorPower(radius, turnRight);
+		
+		//aroundCircleLineFollower(turnRight);
 
 		System.out.println("avoided");
 	}
-
+	 
+	
 	public static void aroundCircleUsingDifferentMotorPower(float radius, boolean turnRight) {
-
+		
 		float velocityRatio = (radius - HALF_ROBOT_WIDTH) / (radius + HALF_ROBOT_WIDTH);
-		float power = 400;
-		float powerValue = 1.15f * (float) MovementControllerThread.velocityToPower(MovementControllerThread.powerToVelocity(power) * velocityRatio);
+		float power = 300;
+		float powerValue = (float) MovementControllerThread.velocityToPower(MovementControllerThread.powerToVelocity(power) * velocityRatio);
 		if (turnRight) {
 			MovementControllerThread.leftMotorPower = power;
 			MovementControllerThread.rightMotorPower = powerValue;
@@ -323,47 +321,46 @@ public class RobotMovement {
 				break;
 			}
 		}
-
+	
 	}
-
+	
 	public static void aroundCircleLineFollower(boolean turnRight) {
-
+		
 		float power = 300;
-
 		setWheelsToMoveForward();
-		moveForward(3, false);
-
+		
 		while (Math.abs(GyroReadingThread.angleValue - 0) > ERROR_ANGLE) {
 			leftMotor.setSpeed(power); // Go straight
 			rightMotor.setSpeed(power);
-			moveForward(2, false);
+			
 			Colour newColour = ColourReadingThread.colourValue;
-			System.out.println("angle value " + GyroReadingThread.angleValue);
-			if (turnRight) {
+			
+			if (turnRight) {	
 				while (newColour != Colour.COLOUR_BLUE) {
 					newColour = ColourReadingThread.colourValue;
-					// rotate right until see blue line
-					turnRight(1);
-					if (Math.abs(GyroReadingThread.angleValue - 0) <= ERROR_ANGLE)
-						return;
-
+					//rotate right until see blue line
+					
 				}
-
+							
 			} else {
 				while (newColour != Colour.COLOUR_BLUE) {
 					newColour = ColourReadingThread.colourValue;
-					// rotate left until see blue line
-					turnLeft(1);
-					if (Math.abs(GyroReadingThread.angleValue - 0) <= ERROR_ANGLE)
-						return;
-
+					//rotate left until see blue line
+					
 				}
-
+				
 			}
-
+			
+			
 		}
-
+			
+			
+		
+		
 	}
+	
+	
+	
 
 	public static Point[][] splitInMiddle(float x, Point[] ps) {
 		ArrayList<Point> below = new ArrayList<>(), above = new ArrayList<>();
