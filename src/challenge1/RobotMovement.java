@@ -173,9 +173,10 @@ public class RobotMovement {
 	}
 
 	public static void moveToEnd() {
-		MovementControllerThread.setPower(200);
+		MovementControllerThread.setPower(130);
 		moveForward(3, false);
 		while (true) {
+			MovementControllerThread.setPower(200);
 			setWheelsToMoveForward();
 			if (ColourReadingThread.colourValue == Colour.COLOUR_GREEN) {
 				moveForward(3, true);
@@ -187,7 +188,7 @@ public class RobotMovement {
 					System.out.println("(x-(" + circle[0] + "))^2 + (y-(" + circle[1] + "))^2 = " + Math.pow(circle[2], 2));
 					avoidCircle(circle[0], circle[1], circle[2], circle[3], circle[4]);
 				}
-				break;// To remove
+				// break;// To remove
 //				stopMotors();
 //				Delay.msDelay(8000);
 			}
@@ -345,14 +346,22 @@ public class RobotMovement {
 			rightMotor.setSpeed(power);
 			moveForward(1.5f, false);
 			Colour newColour = ColourReadingThread.colourValue;
-			System.out.println("angle value " + GyroReadingThread.angleValue);
 			if (turnRight) {
 				while (newColour != Colour.COLOUR_BLUE) {
 					newColour = ColourReadingThread.colourValue;
 					// rotate right until see blue line
 					turnRight(1);
-					if (Math.abs(GyroReadingThread.angleValue) % 360 <= ERROR_ANGLE * 2)
+					System.out.println("angle value " + Math.abs(GyroReadingThread.angleValue) % 360);
+					if (Math.abs(GyroReadingThread.angleValue) % 360 <= ERROR_ANGLE * 2) {
+						System.out.println("RIGHT SIDE ZERO");
+						newColour = ColourReadingThread.colourValue;
+						moveForward(1, true);
+						while (newColour != Colour.COLOUR_WHITE) {
+							newColour = ColourReadingThread.colourValue;
+							moveForward(0.5f, false);
+						}
 						return;
+					}
 
 				}
 
@@ -361,8 +370,17 @@ public class RobotMovement {
 					newColour = ColourReadingThread.colourValue;
 					// rotate left until see blue line
 					turnLeft(1);
-					if (Math.abs(GyroReadingThread.angleValue) % 360 <= ERROR_ANGLE * 2)
+					System.out.println("RIGHT SIDE ZERO");
+					System.out.println("angle value " + Math.abs(GyroReadingThread.angleValue) % 360);
+					if (Math.abs(GyroReadingThread.angleValue) % 360 <= ERROR_ANGLE * 2) {
+						newColour = ColourReadingThread.colourValue;
+						moveForward(1, true);
+						while (newColour != Colour.COLOUR_WHITE) {
+							newColour = ColourReadingThread.colourValue;
+							moveForward(0.5f, false);
+						}
 						return;
+					}
 
 				}
 
