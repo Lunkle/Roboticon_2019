@@ -276,12 +276,19 @@ public class RobotMovement {
 		float targetSpinAngle = rawTargetAngle < 0 ? rawTargetAngle + 360 : rawTargetAngle;
 		if ((center.x - tangentPoint.x) < 0) {
 			targetSpinAngle -= 180;
+
+			targetSpinAngle -= 15;
+		} else {
+			targetSpinAngle += 15;
+
 		}
+
 		float theta = targetSpinAngle - angleValue;
 
 		System.out.println((center.x - tangentPoint.x) + " " + (center.y - tangentPoint.y));
 		System.out.println("Angle Value: " + angleValue + " Target Angle: " + targetSpinAngle);
 		theta = theta < 0 ? theta + 360 : theta;
+
 		boolean turnRight = false;
 		if (theta < 180) {
 			turnLeft(theta);
@@ -331,12 +338,12 @@ public class RobotMovement {
 		float power = 300;
 
 		setWheelsToMoveForward();
-		moveForward(3, false);
+		// moveForward(1, false);
 
-		while (Math.abs(GyroReadingThread.angleValue - 0) > ERROR_ANGLE) {
+		while (Math.abs(GyroReadingThread.angleValue) % 360 > ERROR_ANGLE * 2) {
 			leftMotor.setSpeed(power); // Go straight
 			rightMotor.setSpeed(power);
-			moveForward(2, false);
+			moveForward(1.5f, false);
 			Colour newColour = ColourReadingThread.colourValue;
 			System.out.println("angle value " + GyroReadingThread.angleValue);
 			if (turnRight) {
@@ -344,7 +351,7 @@ public class RobotMovement {
 					newColour = ColourReadingThread.colourValue;
 					// rotate right until see blue line
 					turnRight(1);
-					if (Math.abs(GyroReadingThread.angleValue - 0) <= ERROR_ANGLE)
+					if (Math.abs(GyroReadingThread.angleValue) % 360 <= ERROR_ANGLE * 2)
 						return;
 
 				}
@@ -354,7 +361,7 @@ public class RobotMovement {
 					newColour = ColourReadingThread.colourValue;
 					// rotate left until see blue line
 					turnLeft(1);
-					if (Math.abs(GyroReadingThread.angleValue - 0) <= ERROR_ANGLE)
+					if (Math.abs(GyroReadingThread.angleValue) % 360 <= ERROR_ANGLE * 2)
 						return;
 
 				}
