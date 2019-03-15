@@ -288,6 +288,18 @@ public class RobotMovement {
 			turnRight(360 - theta);
 			MovementControllerThread.targetAngle += 360 - theta;
 		}
+		
+		// Now move along the outer boundaries of the known circle
+		aroundCircleUsingDifferentMotorPower(radius, turnRight);
+		
+		//aroundCircleLineFollower(turnRight);
+
+		System.out.println("avoided");
+	}
+	 
+	
+	public static void aroundCircleUsingDifferentMotorPower(float radius, boolean turnRight) {
+		
 		float velocityRatio = (radius - HALF_ROBOT_WIDTH) / (radius + HALF_ROBOT_WIDTH);
 		float power = 300;
 		float powerValue = (float) MovementControllerThread.velocityToPower(MovementControllerThread.powerToVelocity(power) * velocityRatio);
@@ -309,8 +321,46 @@ public class RobotMovement {
 				break;
 			}
 		}
-		System.out.println("avoided");
+	
 	}
+	
+	public static void aroundCircleLineFollower(boolean turnRight) {
+		
+		float power = 300;
+		setWheelsToMoveForward();
+		
+		while (Math.abs(GyroReadingThread.angleValue - 0) > ERROR_ANGLE) {
+			leftMotor.setSpeed(power); // Go straight
+			rightMotor.setSpeed(power);
+			
+			Colour newColour = ColourReadingThread.colourValue;
+			
+			if (turnRight) {	
+				while (newColour != Colour.COLOUR_BLUE) {
+					newColour = ColourReadingThread.colourValue;
+					//rotate right until see blue line
+					
+				}
+							
+			} else {
+				while (newColour != Colour.COLOUR_BLUE) {
+					newColour = ColourReadingThread.colourValue;
+					//rotate left until see blue line
+					
+				}
+				
+			}
+			
+			
+		}
+			
+			
+		
+		
+	}
+	
+	
+	
 
 	public static Point[][] splitInMiddle(float x, Point[] ps) {
 		ArrayList<Point> below = new ArrayList<>(), above = new ArrayList<>();
