@@ -23,7 +23,7 @@ public class RobotMovement {
 	static final float LENGTH_OF_ULTRASONIC_ARM = 3.5f;
 
 	static final float HALF_ROBOT_WIDTH = 1.57f;
-	static final float ERROR_ANGLE = 0.15f;
+	static final float ERROR_ANGLE = 3f;
 
 	public static void stopMotors() {
 		leftMotor.stop(true);
@@ -95,7 +95,7 @@ public class RobotMovement {
 		if (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
 			return distanceBeforeStopped;
 		}
-		MovementControllerThread.setPower(20);
+		MovementControllerThread.setPower(100);
 		movingStraight = true;
 		long newTime = System.currentTimeMillis();
 		leftMotor.backward();
@@ -120,7 +120,7 @@ public class RobotMovement {
 		movingStraight = false;
 		Point[] points = new Point[5];
 		float currentAngle = GyroReadingThread.angleValue;
-		MovementControllerThread.setPower(20);
+		MovementControllerThread.setPower(80);
 		leftMotor.backward();
 		rightMotor.forward();
 		// due to sensor/data delay, take the degree of turn you want and -4
@@ -173,7 +173,7 @@ public class RobotMovement {
 	}
 
 	public static void moveToEnd() {
-		MovementControllerThread.setPower(200);
+		MovementControllerThread.setPower(300);
 		moveForward(3, false);
 		while (true) {
 			setWheelsToMoveForward();
@@ -234,7 +234,8 @@ public class RobotMovement {
 		Point oppositePoint = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, LENGTH_OF_COLOUR_SENSOR_ARM);
 		System.out.println(oppositePoint);
 //		moveForward(1, true);
-		Delay.msDelay((int) MovementControllerThread.timeToMoveOneInch);
+//		Delay.msDelay((int) MovementControllerThread.timeToMoveOneInch);
+		moveForward(1, true);
 		yPos += 1.2;
 		Point[] circlePoints = turnAndReturnPoints(yPos);
 		System.out.println("Distance is " + distance);
@@ -268,23 +269,33 @@ public class RobotMovement {
 		Point tangentPoint = pointOffsetByDistance(new Point(xTangent, yTangent), rawAngleValue, LENGTH_OF_COLOUR_SENSOR_ARM); // Set these to the first point that is found
 		Point center = new Point(xCenter, yCenter);
 		float angleValue = rawAngleValue < 0 ? rawAngleValue + 360 : rawAngleValue;
+
 		float rawTargetAngle = (float) Math.toDegrees(Math.atan2((center.y - tangentPoint.y), (center.x - tangentPoint.x)));
+
 		float targetAngle = rawTargetAngle < 0 ? rawTargetAngle + 360 : rawTargetAngle;
+		if ((center.x - tangentPoint.x) < 0) {
+			targetAngle -= 180;
+		}
 		float theta = targetAngle - angleValue;
+
 		System.out.println((center.x - tangentPoint.x) + " " + (center.y - tangentPoint.y));
 		System.out.println("Angle Value: " + angleValue + " Target Angle: " + targetAngle);
 		theta = theta < 0 ? theta + 360 : theta;
 		if (theta < 180) {
 			turnLeft(theta);
 		} else {
-			turnRight(180 - theta);
+			turnRight(360 - theta);
 		}
 		float velocityRatio = (radius - HALF_ROBOT_WIDTH) / (radius + HALF_ROBOT_WIDTH);
 		float powerRatio = (float) MovementControllerThread.velocityToPower(MovementControllerThread.powerToVelocity(1) * velocityRatio);
 		if (targetAngle > 0) {
+			MovementControllerThread.leftMotorPower = 300;
+			MovementControllerThread.rightMotorPower = 300 * powerRatio;
 			leftMotor.setSpeed(300);
 			rightMotor.setSpeed(300 * powerRatio);
 		} else {
+			MovementControllerThread.rightMotorPower = 300;
+			MovementControllerThread.leftMotorPower = 300 * powerRatio;
 			rightMotor.setSpeed(300);
 			leftMotor.setSpeed(300 * powerRatio);
 		}
