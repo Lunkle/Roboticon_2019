@@ -26,6 +26,7 @@ public class ColourReadingThread extends Thread {
 	// or if it's just white.
 	// At the competition, re-check this value.
 	public static final float GRAYSCALE_THRESHOLD = 0.19f;
+//	public static final float GRAYSCALE_THRESHOLD = 0.22f;
 
 	// A variable used to check equality of floats.
 	static final double ERROR_THRESHOLD = 0.000001;

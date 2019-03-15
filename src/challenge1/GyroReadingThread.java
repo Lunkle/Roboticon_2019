@@ -33,6 +33,7 @@ public class GyroReadingThread extends Thread {
 	// RUN METHOD
 	@Override
 	public void run() {
+
 		resetGyro();
 		while (stopThread == false) {
 			angleValue = getAngle();

@@ -24,8 +24,8 @@ public class MovementControllerThread extends Thread {
 	public static double MAX_POWER = 400;
 
 	// Left and right motors' current and target powers
-	static double leftMotorPower = 400; // INITIAL_POWER;
-	static double rightMotorPower = 400; // velocityToPower(powerToVelocity(400) * 0.6);
+	static double leftMotorPower = 50; // INITIAL_POWER;
+	static double rightMotorPower = 50; // velocityToPower(powerToVelocity(400) * 0.6);
 	// this variable records whether or not we've detected the wall yet.a
 	static boolean detectedWall = false;
 
