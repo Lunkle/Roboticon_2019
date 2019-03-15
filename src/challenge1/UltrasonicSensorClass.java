@@ -16,6 +16,10 @@ public class UltrasonicSensorClass {// Variables
 	static SampleProvider distanceMode = ultrasonicSensor.getDistanceMode();
 	static float[] distanceSample = new float[distanceMode.sampleSize()];
 
+	public static void init() {
+
+	}
+
 	public static float getDistanceValue() {
 		float distance;
 		distanceMode.fetchSample(distanceSample, 0);
@@ -23,8 +27,8 @@ public class UltrasonicSensorClass {// Variables
 		distance = distance * 100; // Turn into cm
 		// adjusts sensor data so that it matches the measured distance and adds the
 		// distance from the sensor to the middle of the robot
-		distance = 0.937f * distance + 7.13f;
-		distance = distance / 2.54f; // Converts to inches
+		distance = 0.937f * distance;
+		distance = 3.5f + (distance / 2.54f); // Converts to inches
 		return distance;
 	}
 

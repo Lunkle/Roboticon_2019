@@ -39,10 +39,10 @@ public class TheSmallProgrm {
 		Button.ENTER.waitForPress(); // Uncomment at tournament.
 
 		gyroReadingThread.resetGyro();
+		RobotMovement.resetTachoCounts();
 		RobotMovement.moveToEnd();
-//		RobotMovement.moveForward(100, true);
-//		RobotMovement.waitFiveSeconds();
-//		RobotMovement.returnToStart();
+		RobotMovement.waitFiveSeconds();
+		RobotMovement.returnToStart();
 //		System.out.println(MovementControllerThread.rightMotorPower);
 		Delay.msDelay(10000);
 		done = true;
@@ -73,6 +73,8 @@ public class TheSmallProgrm {
 		// Start movement tracker thread.
 		movementControllerThread = new MovementControllerThread();
 		movementControllerThread.start();
+		// Initialize ultrasonic sensor.
+		UltrasonicSensorClass.init();
 	}
 
 	public static void init() {

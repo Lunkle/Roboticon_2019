@@ -26,13 +26,14 @@ public class MovementControllerThread extends Thread {
 	// Left and right motors' current and target powers
 	static double leftMotorPower = 300; // INITIAL_POWER;
 	static double rightMotorPower = 300; // velocityToPower(powerToVelocity(400) * 0.6);
+
 	// this variable records whether or not we've detected the wall yet.a
 	static boolean detectedWall = false;
 
+	static float distanceFromWall = 0;
+
 	// This is the x position of the robot in inches.
 	static float xPos = 0;
-	// This is the y position of the robot in inches.
-	static float yPos = 0;
 
 	static double velocity = 0;
 
@@ -43,7 +44,7 @@ public class MovementControllerThread extends Thread {
 	long time;
 
 	// Adjust sharpness (in rotations per second).
-	int adjust = 5;
+	int adjust = 30;
 
 	// The delay such that at the Tp of 320 it will move forward one inch by the end
 	// of 160 milliseconds.
@@ -67,15 +68,13 @@ public class MovementControllerThread extends Thread {
 			if (RobotMovement.movingStraight == true) {
 				float angle = GyroReadingThread.angleValue;
 				if (RobotMovement.movingBackward) {
-					yPos -= Math.cos(Math.toRadians(angle)) * straightDisplacement;
 					xPos += Math.sin(Math.toRadians(angle)) * straightDisplacement;
 					if (GyroReadingThread.angleValue > targetAngle) {
-						rightTempPower = Math.max(10, leftMotorPower - adjust);
+						leftTempPower = Math.max(10, leftMotorPower - adjust);
 					} else {
-						leftTempPower = Math.max(10, rightMotorPower - adjust);
+						rightTempPower = Math.max(10, rightMotorPower - adjust);
 					}
 				} else {
-					yPos += Math.cos(Math.toRadians(angle)) * straightDisplacement;
 					xPos -= Math.sin(Math.toRadians(angle)) * straightDisplacement;
 					if (GyroReadingThread.angleValue > targetAngle) {
 						rightTempPower = Math.max(10, rightMotorPower - adjust);
