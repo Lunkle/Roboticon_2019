@@ -272,23 +272,25 @@ public class RobotMovement {
 
 		float rawTargetAngle = (float) Math.toDegrees(Math.atan2((center.y - tangentPoint.y), (center.x - tangentPoint.x)));
 
-		float targetAngle = rawTargetAngle < 0 ? rawTargetAngle + 360 : rawTargetAngle;
+		float targetSpinAngle = rawTargetAngle < 0 ? rawTargetAngle + 360 : rawTargetAngle;
 		if ((center.x - tangentPoint.x) < 0) {
-			targetAngle -= 180;
+			targetSpinAngle -= 180;
 		}
-		float theta = targetAngle - angleValue;
+		float theta = targetSpinAngle - angleValue;
 
 		System.out.println((center.x - tangentPoint.x) + " " + (center.y - tangentPoint.y));
-		System.out.println("Angle Value: " + angleValue + " Target Angle: " + targetAngle);
+		System.out.println("Angle Value: " + angleValue + " Target Angle: " + targetSpinAngle);
 		theta = theta < 0 ? theta + 360 : theta;
+		boolean turnRight = false;
 		if (theta < 180) {
 			turnLeft(theta);
+			turnRight = true;
 		} else {
 			turnRight(360 - theta);
 		}
 		float velocityRatio = (radius - HALF_ROBOT_WIDTH) / (radius + HALF_ROBOT_WIDTH);
 		float powerRatio = (float) MovementControllerThread.velocityToPower(MovementControllerThread.powerToVelocity(1) * velocityRatio);
-		if (targetAngle > 0) {
+		if (turnRight) {
 			MovementControllerThread.leftMotorPower = 300;
 			MovementControllerThread.rightMotorPower = 300 * powerRatio;
 			leftMotor.setSpeed(300);
@@ -301,7 +303,9 @@ public class RobotMovement {
 		}
 		setWheelsToMoveForward();
 		while (true) {
-			if (GyroReadingThread.angleValue - MovementControllerThread.targetAngle < ERROR_ANGLE) {
+			System.out.println(Math.abs(GyroReadingThread.angleValue - MovementControllerThread.targetAngle) < ERROR_ANGLE);
+			System.out.println("Values: " + GyroReadingThread.angleValue + ", " + MovementControllerThread.targetAngle);
+			if (Math.abs(GyroReadingThread.angleValue - MovementControllerThread.targetAngle) < ERROR_ANGLE) {
 				stopMotors();
 				break;
 			}
