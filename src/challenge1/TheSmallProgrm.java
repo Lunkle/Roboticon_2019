@@ -36,7 +36,7 @@ public class TheSmallProgrm {
 		startLineFollowingThreads();
 //		fw.write("Starting program\n");
 		System.out.println("Press the fat button to start.");
-//		Button.ENTER.waitForPress(); //Uncomment at tournament.
+		Button.ENTER.waitForPress(); // Uncomment at tournament.
 
 		gyroReadingThread.resetGyro();
 		RobotMovement.moveToEnd();
