@@ -1,8 +1,7 @@
 package challenge1;
 
-import lejos.hardware.port.Port;
-import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.robotics.SampleProvider;
+import lejos.utility.Delay;
 
 public class GyroReadingThread extends Thread {
 	// Variables
@@ -23,29 +22,32 @@ public class GyroReadingThread extends Thread {
 
 	static final double ERROR_THRESHOLD = 0.000001;
 
-	// Initializing gyro sensor
-	static Port s3 = TheSmallProgrm.brick.getPort("S3");
-	static EV3GyroSensor gyroSensor = new EV3GyroSensor(s3);
-
-	static SampleProvider angleMode = gyroSensor.getAngleMode(); // Up here
-	static float[] angleSample = new float[angleMode.sampleSize()];
+	static SampleProvider angleMode;
+	static float[] angleSample;
 
 	// RUN METHOD
 	@Override
 	public void run() {
-
-		resetGyro();
+		init();
 		while (stopThread == false) {
+			Delay.msDelay(1);
 			angleValue = getAngle();
 			print(angleValue);
 		}
-		gyroSensor.close();
 		doneThread = true;
+	}
+
+	public void init() {
+		angleMode = TheSmallProgrm.gyroSensor.getAngleMode();
+		angleSample = new float[angleMode.sampleSize()];
 	}
 
 	// Resets the gyro sensor.
 	public void resetGyro() {
-		gyroSensor.reset();
+		Delay.msDelay(100);
+		TheSmallProgrm.gyroSensor.reset();
+		Delay.msDelay(100);
+		MovementControllerThread.targetAngle = 0;
 	}
 
 	// Super cool -- get the angle method.

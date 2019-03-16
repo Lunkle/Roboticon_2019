@@ -56,6 +56,7 @@ public class MovementControllerThread extends Thread {
 	public void run() {
 		time = System.currentTimeMillis();
 		while (!stopThread) {
+//			System.out.println(targetAngle + " " + GyroReadingThread.angleValue);
 			oldTime = time;
 			time = System.currentTimeMillis();
 			float deltaTime = time - oldTime;

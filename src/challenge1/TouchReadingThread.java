@@ -1,8 +1,7 @@
 package challenge1;
 
-import lejos.hardware.port.Port;
-import lejos.hardware.sensor.EV3TouchSensor;
 import lejos.robotics.SampleProvider;
+import lejos.utility.Delay;
 
 public class TouchReadingThread extends Thread {// Variables
 
@@ -24,17 +23,15 @@ public class TouchReadingThread extends Thread {// Variables
 	// This is the amount of time after a touch for which the
 	static float lingerTime = 100;
 
-	// Initializing touch sensor
-	static Port s4 = TheSmallProgrm.brick.getPort("S4");
-	static EV3TouchSensor touchSensor = new EV3TouchSensor(s4);
-
-	static SampleProvider touchMode = touchSensor.getTouchMode();
-	static float[] touchSample = new float[touchMode.sampleSize()];
+	static SampleProvider touchMode;
+	static float[] touchSample;
 
 	@Override
 	public void run() {
+		init();
 		long timeSinceLastTouch = 0;
 		while (stopThread == false) {
+			Delay.msDelay(20);
 			print("=======");
 			float touch = getTouchValue();
 			long time = System.currentTimeMillis();
@@ -50,8 +47,12 @@ public class TouchReadingThread extends Thread {// Variables
 			}
 			print(touchValue);
 		}
-		touchSensor.close();
 		doneThread = true;
+	}
+
+	public void init() {
+		touchMode = TheSmallProgrm.touchSensor.getTouchMode();
+		touchSample = new float[touchMode.sampleSize()];
 	}
 
 	private float getTouchValue() {

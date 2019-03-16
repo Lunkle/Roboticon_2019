@@ -23,7 +23,7 @@ public class RobotMovement {
 	static final float LENGTH_OF_ULTRASONIC_ARM = 3.5f;
 
 	static final float HALF_ROBOT_WIDTH = 1.57f;
-	static final float ERROR_ANGLE = 2.5f;
+	static final float ERROR_ANGLE = 8f;
 
 	public static void stopMotors() {
 		leftMotor.stop(true);
@@ -113,7 +113,7 @@ public class RobotMovement {
 	// So much maths at work.
 	public static double moveForwardUntilSeeWhite(long timeStart) {
 		if (ColourReadingThread.colourValue == Colour.COLOUR_WHITE) {
-			return distanceBeforeStopped;
+			return 0;
 		}
 		MovementControllerThread.setPower(100);
 		movingStraight = true;
@@ -122,10 +122,9 @@ public class RobotMovement {
 		rightMotor.backward();
 		double distance;
 		while (true) {
-			Delay.msDelay(1);
 			newTime = System.currentTimeMillis();
 			distance = (newTime - timeStart) * MovementControllerThread.velocity;
-			if (distance > 4.8 - distanceBeforeStopped) {
+			if (distance > 4.8) {
 				stopMotors();
 				return 4.8;
 			}
@@ -134,12 +133,12 @@ public class RobotMovement {
 				break;
 			}
 		}
-		return distanceBeforeStopped + distance;
+		return distance;
 	}
 
 	public static Point[] turnAndReturnPoints(float yPos) {
 		movingStraight = false;
-		Point[] points = new Point[5];
+		Point[] points = new Point[4];
 		float currentAngle = GyroReadingThread.angleValue;
 		MovementControllerThread.setPower(80);
 		leftMotor.backward();
@@ -149,17 +148,10 @@ public class RobotMovement {
 		Colour oldColour = ColourReadingThread.colourValue;
 		float angleValue = GyroReadingThread.angleValue;
 		float xPos = MovementControllerThread.xPos;
-		ArrayList<Float> distanceFromWallValues = new ArrayList<>();
-//		Point 
 		int pointIndex = 0;
 		while (angleValue >= targetAngle) {
 			Delay.msDelay(1);
 			angleValue = GyroReadingThread.angleValue;
-			if (Math.abs(angleValue - 90) <= 10) {
-				float distanceFromWallAtAngle = UltrasonicSensorClass.getDistanceValue();
-				float distanceFromWall = (float) (distanceFromWallAtAngle * Math.cos(Math.toRadians(Math.abs(angleValue - 90))));
-				distanceFromWallValues.add(distanceFromWall);
-			}
 			if (angleValue < targetAngle) {
 				stopMotors();
 				break;
@@ -178,13 +170,6 @@ public class RobotMovement {
 			oldColour = newColour;
 		}
 		stopMotors();
-		float sumOfDistancesFromWall = 0;
-		for (float distance : distanceFromWallValues) {
-			sumOfDistancesFromWall += distance;
-		}
-		float averageDistanceFromWall = sumOfDistancesFromWall / distanceFromWallValues.size();
-		points[4] = new Point(averageDistanceFromWall + LENGTH_OF_ULTRASONIC_ARM, 0);
-		MovementControllerThread.detectedWall = true;
 		MovementControllerThread.targetAngle -= 360;
 		return points;
 	}
@@ -197,35 +182,41 @@ public class RobotMovement {
 	public static void moveToEnd() {
 		movingStraight = true;
 		MovementControllerThread.setPower(200);
-		moveForward(22, true);
-		Delay.msDelay(1000);
-		avoidCircle(-5, 4, 6.5f, 0, 0);
-		MovementControllerThread.setPower(200);
-		moveForward(18, true);
-		Delay.msDelay(1000);
-		avoidCircle(-1, 12.5f, 8.5f, 0, 0);
+//		moveForward(22, true);
+//		Delay.msDelay(1000);
+//		avoidCircle(-5, 4, 6.5f, 0, 0);
+//		MovementControllerThread.setPower(200);
+//		moveForward(35, true);
+//		Delay.msDelay(1000);
+//		avoidCircle(-1, 12.5f, 8.5f, 0, 0);
 		while (true) {
+
 			MovementControllerThread.setPower(200);
 			setWheelsToMoveForward();
 			if (ColourReadingThread.colourValue == Colour.COLOUR_GREEN) {
 				System.out.println("found green");
 				moveForward(6, true);
 				turnRight(180);
+				moveBackward(12, true);
+				TheSmallProgrm.gyroReadingThread.resetGyro();
 				break;
 			} else if (TouchReadingThread.touchValue == 1) {
 				gotoGreenZone();
 				System.out.println("reached end");
 				break;
-//			} else if (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
-//				long timeWhenSeeBlue = System.currentTimeMillis();
-//				float[] circle = findCircle(timeWhenSeeBlue);
-//
-//				if (circle != null) {
-//					MovementControllerThread.distanceFromWall = circle[4];
-//					System.out.println("(x-(" + circle[0] + "))^2 + (y-(" + circle[1] + "))^2 = " + Math.pow(circle[2], 2));
-//					avoidCircle(circle[0], circle[1], circle[2], circle[3], circle[4]);
-//				}
+			} else if (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
+				double blueOvershoot = getOverShootAmountBlue();
+				long timeWhenSeeBlue = System.currentTimeMillis();
+				float[] circle = findCircle(timeWhenSeeBlue, blueOvershoot);
+				if (circle != null) {
+					MovementControllerThread.distanceFromWall = circle[4];
+					System.out.println("(x-(" + circle[0] + "))^2 + (y-(" + circle[1] + "))^2 = " + Math.pow(circle[2], 2));
+					avoidCircle(circle[0], circle[1], circle[2], circle[3], circle[4]);
+				}
+//				MovementControllerThread.setPower(200);
+//				moveForward(5, false);
 			}
+			Delay.msDelay(10);
 		}
 	}
 
@@ -235,8 +226,8 @@ public class RobotMovement {
 
 	public static void returnToStart() {
 		movingStraight = true;
-		MovementControllerThread.setPower(130);
-		moveForward(3, false);
+		MovementControllerThread.setPower(200);
+		moveForward(15, false);
 		while (true) {
 			MovementControllerThread.setPower(200);
 			setWheelsToMoveForward();
@@ -248,7 +239,10 @@ public class RobotMovement {
 				gotoGreenZone();
 				System.out.println("reached end");
 				break;
-//			} else if (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
+			} else if (ColourReadingThread.colourValue == Colour.COLOUR_BLUE) {
+				avoidCircle(-1, 12.5f, 8.5f, 0, 0);
+				MovementControllerThread.setPower(200);
+				moveForward(5, false);
 //				long timeWhenSeeBlue = System.currentTimeMillis();
 //				float[] circle = findCircle(timeWhenSeeBlue);
 //
@@ -265,11 +259,14 @@ public class RobotMovement {
 		return new Point((float) (o.x - dist * Math.sin(Math.toRadians(angle))), (float) (o.y + dist * Math.cos(Math.toRadians(angle))));
 	}
 
-	public static float[] findCircle(long timeWhenSeeBlue) {
-//		stopMotors();
+	public static float[] findCircle(long timeWhenSeeBlue, double blueOvershoot) {
+//      stopMotors();
+
 		float xPos = MovementControllerThread.xPos;
 		float yPos = 0;
-		double distance = moveForwardUntilSeeWhite(timeWhenSeeBlue); // Gotta catch em all.
+		double distance = moveForwardUntilSeeWhite(timeWhenSeeBlue) + blueOvershoot; // Wait a second
+		double whiteOvershoot = getOverShootAmountWhite();
+		distance = distance + blueOvershoot - whiteOvershoot;
 		if (distance >= 4.8) {
 			return null;
 		}
@@ -278,10 +275,13 @@ public class RobotMovement {
 		yPos += distance;
 		Point oppositePoint = pointOffsetByDistance(new Point(xPos, yPos), GyroReadingThread.angleValue, LENGTH_OF_COLOUR_SENSOR_ARM);
 		System.out.println(oppositePoint);
-//		moveForward(1, true);
-//		Delay.msDelay((int) MovementControllerThread.timeToMoveOneInch);
+		yPos += whiteOvershoot;
+//      moveForward(1, true);
+//      Delay.msDelay((int) MovementControllerThread.timeToMoveOneInch);
 		moveForward(1, true);
 		yPos += 1.6;
+		float averageRadius = 0;
+		Point averageCenter = null;
 		Point[] circlePoints = turnAndReturnPoints(yPos);
 		System.out.println("Distance is " + distance);
 		Point[][] splitPoints = splitInMiddle(xPos, Arrays.copyOfRange(circlePoints, 0, 4));
@@ -300,9 +300,9 @@ public class RobotMovement {
 			outerCircle = Circle.circleFromPoints(outerPoint, circlePoints[1], circlePoints[2]);
 			System.out.println(innerCircle);
 			System.out.println(outerCircle);
+			averageCenter = Point.averagePoint(innerCircle.center, outerCircle.center);
+			averageRadius = (innerCircle.radius + outerCircle.radius) / 2;
 		}
-		Point averageCenter = Point.averagePoint(innerCircle.center, outerCircle.center);
-		float averageRadius = (innerCircle.radius + outerCircle.radius) / 2;
 		Point tangentPoint = Point.averagePoint(outerPoint, oppositePoint);
 		return new float[] { averageCenter.x, averageCenter.y, averageRadius, tangentPoint.x, tangentPoint.y };
 	}
@@ -320,14 +320,16 @@ public class RobotMovement {
 		float targetSpinAngle = rawTargetAngle < 0 ? rawTargetAngle + 360 : rawTargetAngle;
 		if ((center.x - tangentPoint.x) < 0) {
 			targetSpinAngle -= 180;
-
-			targetSpinAngle -= 15;
-		} else {
-			targetSpinAngle += 15;
-
 		}
-
+		targetSpinAngle = targetSpinAngle < 0 ? targetSpinAngle + 360 : targetSpinAngle;
+		float distanceToRightWall = UltrasonicReadingThread.distanceValue;
+		if (distanceToRightWall < 18 && targetSpinAngle > 180) {
+			targetSpinAngle -= 180;
+		} else if (distanceToRightWall > 18 && targetSpinAngle < 180) {
+			targetSpinAngle += 180;
+		}
 		float theta = targetSpinAngle - angleValue;
+		theta = theta < 0 ? theta + 360 : theta;
 
 		System.out.println((center.x - tangentPoint.x) + " " + (center.y - tangentPoint.y));
 		System.out.println("Angle Value: " + angleValue + " Target Angle: " + targetSpinAngle);
@@ -355,7 +357,7 @@ public class RobotMovement {
 
 		float velocityRatio = (radius - HALF_ROBOT_WIDTH) / (radius + HALF_ROBOT_WIDTH);
 		float power = 400;
-		float powerValue = 1f * (float) MovementControllerThread.velocityToPower(MovementControllerThread.powerToVelocity(power) * velocityRatio);
+		float powerValue = 1.1f * (float) MovementControllerThread.velocityToPower(MovementControllerThread.powerToVelocity(power) * velocityRatio);
 		if (turnRight) {
 			MovementControllerThread.leftMotorPower = power;
 			MovementControllerThread.rightMotorPower = powerValue;
@@ -446,6 +448,16 @@ public class RobotMovement {
 		return new Point[][] { below.toArray(new Point[below.size()]), above.toArray(new Point[above.size()]) };
 	}
 
+	public static double getOverShootAmountBlue() {
+		double averageBlue = ColourReadingThread.getAverageBlue();
+		return -5 * averageBlue + 1;
+	}
+
+	public static double getOverShootAmountWhite() {
+		double averageGrayscale = ColourReadingThread.getAverageGrayscale();
+		return 5 * averageGrayscale - 0.75;
+	}
+
 	public static float getDistanceStopped(float power) {
 		return 0;
 	}
@@ -463,15 +475,17 @@ public class RobotMovement {
 
 	public static void gotoGreenZone() {
 		float widthOfMap = 36;
-		turnRight(90);
-		float distance = UltrasonicSensorClass.getDistanceValue();
+		float distance = UltrasonicReadingThread.distanceValue;
 		if (distance < widthOfMap / 2) {
+			turnLeft(90);
 			moveForward(widthOfMap / 2 - distance, true);
+			turnLeft(90);
 		} else {
-			moveBackward(distance - widthOfMap / 2, true);
-
+			turnRight(90);
+			moveForward(distance - widthOfMap / 2, true);
+			turnRight(90);
 		}
-		System.out.println("distance to wall is " + distance);
-		turnRight(90);
+		moveBackward(6, true);
+		TheSmallProgrm.gyroReadingThread.resetGyro();
 	}
 }
